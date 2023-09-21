@@ -16,21 +16,17 @@ class Tipe_jabatan extends CI_Controller
 
     public function index()
     {
+        if (!isset($login_button)) {
+            $data['title'] = 'Tipe & Jabatan';
+            $data['tipe'] = TipeModel::all();
+            $data['jabatan'] = JabatanModel::all();
+            $data['user'] = $this->session->userdata('user_data');
 
-        $data['title'] = 'Tipe & Jabatan';
-        $data['tipe'] = TipeModel::all();
-        $data['jabatan'] = JabatanModel::all();
-        $userId = $this->session->userdata('id');
-        $userModel = new UserModel();
-        $user = $userModel->getUserById($userId);
-        $data['user'] = $user;
-
-
-
-        $this->load->view('template/header', $data);
-        $this->load->view('template/sidebar');
-        $this->load->view('Admin/tipe_jabatan', $data);
-        $this->load->view('template/footer');
+            $this->load->view('template/header', $data);
+            $this->load->view('template/sidebar');
+            $this->load->view('Admin/tipe_jabatan', $data);
+            $this->load->view('template/footer');
+        }
     }
 
     public function tambahTipeJabatan()

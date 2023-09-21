@@ -8,6 +8,16 @@ class UserModel extends Eloquent
     protected $primaryKey = 'login_oauth_uid';
     protected $fillable = ['login_oauth_uid', 'login_access', 'first_name', 'last_name', 'email_address', 'profile_picture', 'created_at', '	updated_at'];
 
+    public function getUserById($userId)
+    {
+        return $this->where('login_oauth_uid', $userId)->first();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo('UserModel', 'user_id');
+    }
+
     public function findByEmail($email)
     {
         return $this->where('email_address', $email)->first();
@@ -48,10 +58,7 @@ class UserModel extends Eloquent
         return $users->get();
     }
 
-    public function getUserById($userId)
-    {
-        return $this->where('id', $userId)->first();
-    }
+
 
     public $timestamps = false;
 }

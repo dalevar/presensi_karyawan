@@ -18,62 +18,43 @@ class ManageUser extends CI_Controller
 
     public function index()
     {
-        $data['title'] = 'Management User';
-        $data['tipe'] = TipeModel::all();
-        $data['jabatan'] = JabatanModel::all();
-        $userId = $this->session->userdata('id');
-        $userModel = new UserModel();
-        $user = $userModel->getUserById($userId);
-        $data['user'] = $user;
+        if (!isset($login_button)) {
+            $data['title'] = 'Management User';
+            $data['tipe'] = TipeModel::all();
+            $data['jabatan'] = JabatanModel::all();
+            $data['user'] = $this->session->userdata('user_data');
 
-        $dataKaryawan = $this->KaryawanModel->getKaryawan();
+            $dataKaryawan = $this->KaryawanModel->getKaryawan();
 
-        $this->load->view('template/header', $data);
-        $this->load->view('template/sidebar');
-        $this->load->view('Admin/manageuser', ['karyawan' => $dataKaryawan], $data);
-        $this->load->view('template/footer');
+            $this->load->view('template/header', $data);
+            $this->load->view('template/sidebar');
+            $this->load->view('Admin/manageuser', ['karyawan' => $dataKaryawan], $data);
+            $this->load->view('template/footer');
+        }
     }
 
     public function tambahKaryawan()
     {
         $this->_rules();
-        $this->form_validation->set_rules('email_karyawan', 'Email', 'required|valid_email|is_unique[user.email]', [
+        $this->form_validation->set_rules('email_karyawan', 'Email', 'required|valid_email|is_unique[karyawan.email]', [
             'is_unique' => 'this email has already registered'
         ]);
         if ($this->form_validation->run() == false) {
             $this->session->set_flashdata('gagal', 'Masukkan semua data karyawan dengar benar');
-
             $this->index();
         } else {
-            $now = date('Y-m-d H:i:s');
-            // Langkah 1: Masukkan data ke tabel 'user' menggunakan Eloquent
-            $user = new UserModel();
-            $user->email = $this->input->post('email_karyawan');
-            $user->password = password_hash($this->input->post('confirm_password'), PASSWORD_DEFAULT);
-            $user->login_access = 0;
-            $user->created_on = $now;
-            $user->save();
-
-            // Langkah 2: Dapatkan ID user yang baru saja dimasukkan
-            $user_id = $user->id;
-
-            //ambil datanya berdasarkan inputan
-            $namaKaryawan = $this->input->post('nama_karyawan');
-            $tanggalMasuk = $this->input->post('tanggal_masuk');
-            $tipe = $this->input->post('tipe_id');
-            $jabatan = $this->input->post('jabatan_id');
-            $tingkatPendidikan = $this->input->post('tingkat_pendidikan');
-            $catatan = $this->input->post('catatan');
+            $input = $this->input->post(null, TRUE);
 
             //masukkan data berdasarkan inputan yang telah diinput
             $karyawan = new KaryawanModel();
-            $karyawan->user_id = $user_id;
-            $karyawan->nama = $namaKaryawan;
-            $karyawan->tanggal_masuk = $tanggalMasuk;
-            $karyawan->tipe_id = $tipe;
-            $karyawan->jabatan_id = $jabatan;
-            $karyawan->tingkat_pendidikan = $tingkatPendidikan;
-            $karyawan->catatan = $catatan;
+            //$karyawan->user_id = $user_id;//untuk mengambil user_id diperlukan login oleh user baru nantinya table karyawan diupdate dan diisi oleh user_id
+            $karyawan->email = $input['email_karyawan'];
+            $karyawan->nama = $input['nama_karyawan'];
+            $karyawan->tanggal_masuk = $input['tanggal_masuk'];
+            $karyawan->tipe_id = $input['tipe_id'];
+            $karyawan->jabatan_id = $input['jabatan_id'];
+            $karyawan->tingkat_pendidikan = $input['tingkat_pendidikan'];
+            $karyawan->catatan = $input['catatan'];
             $karyawan->save();
 
             $this->session->set_flashdata('berhasil', 'Data berhasil ditambahkan');
@@ -95,6 +76,7 @@ class ManageUser extends CI_Controller
             $id = $input['id'];
             // Tangkap data yang dikirimkan dari form edit
             $data = array(
+                'email' => $input['email_karyawan'],
                 'nama' => $input['nama_karyawan'],
                 'tanggal_masuk' => $input['tanggal_masuk'],
                 'tipe_id' => $input['tipe_id'],
@@ -164,14 +146,32 @@ class ManageUser extends CI_Controller
     public function hapusKaryawan($id)
     {
         $id = $this->input->post('id');
-        $karyawan = new KaryawanModel();
-        $hapusKaryawan = $karyawan->deleteKaryawan($id);
+
+        // Hapus data dari tabel karyawan berdasarkan ID atau email
+        $karyawan = KaryawanModel::find($id);
+        if (!$karyawan) {
+            $this->session->set_flashdata('gagal', 'Data Karyawan tidak ditemukan atau gagal dihapus');
+            redirect('admin/manageuser');
+        }
+
+        // Simpan email karyawan sebelum menghapus
+        $emailKaryawan = $karyawan->email;
+
+        // Hapus data karyawan
+        $hapusKaryawan = $karyawan->delete();
 
         if ($hapusKaryawan) {
+            // Hapus data pengguna (user) berdasarkan email yang sama
+            $user = UserModel::where('email_address', $emailKaryawan)->first();
+            if ($user) {
+                $user->delete();
+            }
+
             $this->session->set_flashdata('berhasil', 'Data Karyawan berhasil dihapus');
         } else {
-            $this->session->set_flashdata('gagal', 'Data Karyawan tidak ditemukan atau gagal dihapus');
+            $this->session->set_flashdata('gagal', 'Data Karyawan gagal dihapus');
         }
+
         redirect('admin/manageuser');
     }
 

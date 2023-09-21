@@ -38,40 +38,49 @@
 
 
 <script>
+    // $(document).ready(function() {
+    //     let flashMessage = $("#flash").data("flash");
+
+
+    //     if (flashMessage) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: flashMessage,
+    //             showConfirmButton: true,
+    //             showClass: {
+    //                 popup: 'animate__animated animate__headShake'
+    //             },
+    //             hideClass: {
+    //                 popup: 'animate__animated animate__bounceOutUp'
+    //             },
+    //             width: 400,
+    //             customClass: {
+    //                 popup: 'alert-popup' // Nama kelas CSS baru untuk custom styling
+    //             },
+    //             // timer: 4000
+    //         });
+    //         // Menambahkan margin-bottom
+    //         $(".alert-popup").css("padding-bottom", "40px");
+
+    //     }
+    // });
+
     $(document).ready(function() {
-        let flashMessage = $("#flash").data("flash");
+        let flashElement = $('#flash');
+        let flashMessage = flashElement.data('flash');
+        let flashType = flashElement.data('type');
 
         if (flashMessage) {
-            let alertType = (flashMessage === "Login berhasil") ? 'success' : 'error';
+            let title = (flashType === 'success') ? 'Berhasil' : 'Gagal';
 
             Swal.fire({
-                icon: alertType,
-                title: flashMessage,
-                showConfirmButton: true,
-                showClass: {
-                    popup: 'animate__animated animate__headShake'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__bounceOutUp'
-                },
-                width: 400,
-                customClass: {
-                    popup: 'alert-popup' // Nama kelas CSS baru untuk custom styling
-                },
-                // timer: 4000
+                icon: flashType,
+                title: title,
+                text: flashMessage,
             });
-            // Menambahkan margin-bottom
-            $(".alert-popup").css("padding-bottom", "40px");
 
-            // Cek jika pesan adalah "Logout berhasil" dan tambahkan pesan "Anda Telah Logout"
-            if (flashMessage === "Logout berhasil") {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Anda Telah Logout',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            }
+            // Menghapus flash data 'gagal' setelah menampilkannya
+            <?php $this->session->unset_userdata('gagal'); ?>
         }
     });
 </script>

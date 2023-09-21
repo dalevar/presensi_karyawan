@@ -54,6 +54,7 @@
 	<!-- app JavaScript -->
 	<script src="<?= base_url('assets') ?>/js/app.js"></script>
 
+
 	<!-- Sweetalerts 2-->
 	<script src="<?= base_url('assets/js/sweetalert2/') ?>cdn.jsdelivr.net_npm_sweetalert2@11_dist_sweetalert2.min.js"></script>
 

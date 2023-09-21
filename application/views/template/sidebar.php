@@ -1,9 +1,9 @@
 <div class="iq-sidebar  sidebar-default  ">
 	<div class="iq-sidebar-logo d-flex align-items-end justify-content-between">
-		<a href="../backend/index.html" class="header-logo">
+		<a href="<?= base_url('admin/dashboard') ?>" class="header-logo">
 			<img src="<?= base_url('assets') ?>/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo">
 			<img src="<?= base_url('assets') ?>/images/logo-dark.png" class="img-fluid rounded-normal d-none sidebar-light-img" alt="logo">
-			<span>Datum</span>
+			<span>PRESENSI <i class="ri-building-2-fill"></i></span>
 		</a>
 		<div class="side-menu-bt-sidebar-1">
 			<svg xmlns="http://www.w3.org/2000/svg" class="text-light wrapper-menu" width="30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,7 +121,7 @@
 						<li class="nav-item nav-icon dropdown">
 							<a href="#" class="nav-item nav-icon dropdown-toggle pr-0 search-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 								<img src="<?= base_url('assets') ?>/images/user/1.jpg" class="img-fluid avatar-rounded" alt="user">
-								<span class="mb-0 ml-2 user-name"><?= $user->email ?></span>
+								<span class="mb-0 ml-2 user-name"><?= $user['first_name'] . ' ' . $user['last_name'] ?></span>
 							</a>
 							<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
 

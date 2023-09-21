@@ -23,7 +23,7 @@
 function check_not_login()
 {
     $ci = &get_instance();
-    $user_session = $ci->session->userdata('id');
+    $user_session = $ci->session->userdata('access_token');
     //ketika tidak login
     if (!$user_session) {
         redirect('auth');
@@ -33,10 +33,10 @@ function check_not_login()
 function admin_access()
 {
     $ci = &get_instance();
+    $userData = $ci->fungsi->user_login();
+    // $login_access = $ci->fungsi->user_login()->login_access;
 
-    $login_access = $ci->fungsi->user_login()->login_access;
-
-    if ($login_access != 1) {
+    if (isset($userData['login_access']) && $userData['login_access'] != 1) {
         // Jika login_access adalah 0, block akses
         redirect('user/dashboard');
         // show_error('Access Denied', 403);
@@ -46,10 +46,11 @@ function admin_access()
 function user_access()
 {
     $ci = &get_instance();
+    $userData = $ci->fungsi->user_login();
 
-    $login_access = $ci->fungsi->user_login()->login_access;
+    // $login_access = $ci->fungsi->user_login()->login_access;
 
-    if ($login_access != 0) {
+    if (isset($userData['login_access']) && $userData['login_access'] != 0) {
         // Jika login_access adalah 0, block akses
         redirect('admin/dashboard');
         // show_error('Access Denied', 403);
@@ -83,10 +84,54 @@ function getStatusPresensi($tanggalPresensi)
     }
 }
 
+function hitungStatusPresensi($karyawan_id)
+{
+    $CI = &get_instance();
+    $CI->load->model('PresensiModel');
+    // Mengambil data presensi terakhir untuk karyawan tertentu
+    $lastPresensi = $CI->PresensiModel->where('created_by', $karyawan_id)
+        ->orderBy('created_on', 'DESC')
+        ->first();
 
+    if ($lastPresensi) {
+        // Mengambil tanggal dan jam presensi terakhir
+        $tanggalPresensi = new DateTime($lastPresensi->created_on);
 
+        // Menentukan waktu yang dianggap sebagai batas waktu "Terlambat" (misalnya pukul 08:00)
+        $batasWaktu = new DateTime($tanggalPresensi->format('Y-m-d') . ' 08:00:00');
 
+        // Memeriksa apakah tanggal dan jam presensi kurang dari batas waktu
+        if ($tanggalPresensi < $batasWaktu) {
+            return '<span class="text-warning">Terlambat</span>';
+        } else {
+            return 'Tidak Terlambat';
+        }
+    } else {
+        return "Data presensi tidak ditemukan.";
+    }
+}
 
+function hitungJumlahTidakMasuk($user_id, $tanggal)
+{
+    $ci = &get_instance();
+    // Load model AbsensiModel (pastikan model sudah ada)
+    $ci->load->model('PresensiModel');
+
+    // Menggunakan model untuk mengambil data absensi berdasarkan user_id dan tanggal_absensi
+    $absensiModel = new PresensiModel();
+    $absensiData = $absensiModel->getAbsensiByUserIdAndDate($user_id, $tanggal);
+
+    // Hitung jumlah tidak masuk
+    $jumlah_tidak_masuk = 0;
+
+    foreach ($absensiData as $absensi) {
+        if ($absensi['status'] == 'Tidak Masuk') {
+            $jumlah_tidak_masuk++;
+        }
+    }
+
+    return $jumlah_tidak_masuk;
+}
 
 function qrcode($data, $filename)
 {

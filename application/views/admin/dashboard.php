@@ -11,35 +11,35 @@
             </div>
             <div class="col-lg-8 col-md-8">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header d-flex flex-wrap ">
                                 <div class="header-title">
                                     <h5 class="card-title">Terlambat Hari ini</h5>
-                                    <p class="mb-0 text-secondary font-weight-bold">22/22/2022</p>
+                                    <span class="mb-0 text-secondary font-weight-bold"><?= date('d-m-Y') ?></span>
+
+                                    <!-- <p class="mb-0 text-secondary font-weight-bold">22/22/2022</p> -->
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex">
-                                        <div class="ml-4">
-                                            <h3 class="text-warning font-weight-bold">24</h3>
-                                        </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-warning font-weight-bold d-flex flex-wrap justify-content-end">24</h2>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header d-flex flex-wrap ">
                                 <div class="header-title">
                                     <h5 class="card-title">Tidak Masuk Hari ini</h5>
-                                    <p class="mb-0 text-secondary font-weight-bold">22/22/2022</p>
+                                    <span class="mb-0 text-secondary font-weight-bold"><?= date('d-m-Y') ?></span>
+
+                                    <!-- <p class="mb-0 text-secondary font-weight-bold">22/22/2022</p> -->
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex">
-                                        <div class="ml-4">
-                                            <h3 class="text-danger font-weight-bold">24</h3>
-                                        </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-danger font-weight-bold d-flex flex-wrap justify-content-end">24</h2>
                                     </div>
                                 </div>
                             </div>
@@ -53,7 +53,6 @@
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
                             <h4 class="card-title">Data Presensi</h4>
-                            <h5 class="mb-0 text-secondary">22/22/2022</h5>
                         </div>
                         <div class="card-header-toolbar d-flex align-items-center">
                             <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-4 float-right">
@@ -71,10 +70,9 @@
                         <table id="datatable" class="table data-table table-striped table-bordered">
                             <thead class="table-color-heading">
                                 <tr>
-                                    <th width="10%">No</th>
+                                    <th width="20%">Tanggal Presensi</th>
                                     <th>Nama</th>
-                                    <th width="15%">Tanggal Presensi</th>
-                                    <th width="20%">Status</th>
+                                    <th width="25%">Status</th>
                                     <th width="15%">Jumlah Tidak Masuk</th>
                                 </tr>
                             </thead>
@@ -89,3 +87,55 @@
     </div>
 </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // Fungsi untuk mengisi tabel dengan data presensi
+        function isiTabelPresensi() {
+            // Ambil tanggal saat ini
+            var tanggalSaatIni = new Date();
+            var tahun = tanggalSaatIni.getFullYear();
+            var bulan = tanggalSaatIni.getMonth() + 1; // Perhatikan bahwa bulan dimulai dari 0 (Januari) hingga 11 (Desember)
+            var hari = tanggalSaatIni.getDate();
+
+            // Format tanggal dengan "d-m-Y"
+            var tanggalFormat = (hari < 10 ? '0' : '') + hari + "/" + (bulan < 10 ? '0' : '') + bulan + "/" + tahun;
+
+            // Mulai mengisi tabel
+            var tabel = $("#datatable tbody");
+            tabel.empty(); // Hapus data yang ada
+
+            $.ajax({
+                url: "<? base_url('admin/dashboard/presensi') ?>",
+                type: "GET",
+                dataType: "JSON",
+                success: function(data) {
+                    // // Loop melalui data dan tambahkan baris ke tabel
+                    // for (var i = 0; i < data.length; i++) {
+                    //     var row = $("<tr>");
+                    //     row.append($("<td>").text(tanggalFormat));
+                    //     row.append($("<td>").text(data[i].nama_karyawan));
+                    //     row.append($("<td>").text(data[i].status_hadir));
+                    //     row.append($("<td>").text(data[i].jumlah_tidak_masuk));
+                    //     tabel.append(row);
+                    // }
+                },
+                error: function() {
+                    // Handle kesalahan jika terjadi
+                    console.error("Terjadi kesalahan dalam permintaan AJAX: " + textStatus, errorThrown);
+                }
+            });
+
+            // Contoh sederhana: Tambahkan satu baris ke tabel
+            var row = $("<tr>");
+            row.append($("<td>").text(tanggalFormat));
+            row.append($("<td>").text("Nama Karyawan"));
+            row.append($("<td>").text("Status Hadir"));
+            row.append($("<td>").text("0")); // Jumlah Tidak Masuk
+            tabel.append(row);
+        }
+
+        // Panggil fungsi isiTabelPresensi saat halaman dimuat
+        isiTabelPresensi();
+    });
+</script>

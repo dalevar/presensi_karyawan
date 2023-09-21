@@ -6,7 +6,7 @@ class KaryawanModel extends Eloquent
 {
     protected $table = 'karyawan';
     protected $primaryKey = 'id';
-    protected $fillable = ['user_id', 'nama', 'tanggal_masuk', 'tipe_id', 'jabatan_id', 'tingkat_pendidikan', 'catatan'];
+    protected $fillable = ['user_id', 'email', 'nama', 'tanggal_masuk', 'tipe_id', 'jabatan_id', 'tingkat_pendidikan', 'catatan'];
 
     public function getKaryawan()
     {
@@ -15,6 +15,16 @@ class KaryawanModel extends Eloquent
             ->leftJoin('jabatan', 'jabatan.id', '=', 'karyawan.jabatan_id')
             ->leftjoin('user', 'user.id', '=', 'karyawan.user_id')
             ->get();
+    }
+
+    public function jabatan()
+    {
+        return $this->belongsTo(JabatanModel::class, 'jabatan_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo('UserModel', 'user_id');
     }
 
     public function getById($id)

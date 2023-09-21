@@ -36,6 +36,7 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Nama</th>
+                                        <th>Email</th>
                                         <th>Jabatan</th>
                                         <th>Tipe</th>
                                         <th>Tanggal Diterima</th>
@@ -48,6 +49,7 @@
                                         <tr>
                                             <td><?= $no++; ?></td>
                                             <td><?= $kr->nama ?></td>
+                                            <td><?= $kr->email ?></td>
                                             <td><?= $kr->jabatan ?></td>
                                             <td><?= $kr->tipe ?></td>
                                             <td><?= date('d/m/Y', strtotime($kr->tanggal_masuk)) ?></td>
@@ -140,10 +142,22 @@
                         <input type="text" class="form-control" name="tingkat_pendidikan">
                         <?= form_error('tingkat_pendidikan', '<small class="text-danger">', '</small>') ?>
                     </div>
-                    <div class="form-group">
-                        <label for="" class="h6">Catatan</label>
-                        <textarea name="catatan" id="" rows="2" class="form-control"></textarea>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="" class="h6">Catatan</label>
+                                <textarea name="catatan" id="" rows="2" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="" class="h6">Role</label>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="customCheck5">
+                                <label class="custom-control-label" for="customCheck5">Admin</label>
+                            </div>
+                        </div>
                     </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -173,10 +187,10 @@ foreach ($karyawan as $kr) : $no++ ?>
                         <input type="hidden" id="editId" name="id" value="<?= $kr->id ?>">
                         <div class="form-group">
                             <label for="" class="h6">Email</label>
-                            <input type="text" class="form-control" name="email_karyawan">
+                            <input type="text" class="form-control" name="email_karyawan" value="<?= $kr->email; ?>">
                             <?= form_error('email_karyawan', '<small class="text-danger">', '</small>') ?>
                         </div>
-                        <div class="form-group">
+                        <div class=" form-group">
                             <label for="" class="h6">Nama</label>
                             <input type="text" class="form-control" name="nama_karyawan" id="editNamaKaryawan" value="<?= $kr->nama; ?>">
                             <?= form_error('nama_karyawan', '<small class="text-danger">', '</small>') ?>

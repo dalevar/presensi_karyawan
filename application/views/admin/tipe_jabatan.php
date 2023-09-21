@@ -18,10 +18,6 @@
 
                             <button type="button" class="btn btn-primary mb-2 float-right" data-toggle="modal" data-target=".bd-example-modal-xl">Tambah</button>
 
-                            <?php
-                            //$this->view('message') 
-                            ?>
-
                             <?php if ($this->session->flashdata('berhasil')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('berhasil') ?>" data-type="success"></div>
 

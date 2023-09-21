@@ -15,11 +15,10 @@ class Fungsi
     function user_login()
     {
         // Diambil dari session yang login
-        $userId = $this->ci->session->userdata('id');
-        $userModel = $this->ci->UserModel;
-
-        // Menggunakan Eloquent untuk mengambil data pengguna
-        $userData = $userModel->find($userId);
+        $userData = $this->ci->session->userdata('user_data');
+        // $userModel = $this->ci->UserModel;
+        // // Menggunakan Eloquent untuk mengambil data pengguna
+        // $userData = $userModel->find($userId);
 
         return $userData;
     }

@@ -8,6 +8,10 @@ class JabatanModel extends Eloquent
     protected $primaryKey = 'id';
     protected $fillable = ['jabatan'];
 
+    public function karyawan()
+    {
+        return $this->hasMany(KaryawanModel::class, 'jabatan_id');
+    }
 
     public function updateJabatan($id, $data)
     {
