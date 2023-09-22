@@ -16,11 +16,12 @@
                                     <div class="">
                                         <h5 class="mb-2 font-weitght-bold">Tidak Hadir Bulan Ini</h5>
                                         <div class="justify-content-start align-items-center">
-                                            <h6 class="mb-2 font-weight-bold  text-secondary">Tidak Hadir : <span class="text-danger"><?= $ketidak_hadir_bulan_ini ?></span></h6>
-                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat : <span class="text-warning"></span></h6>
+                                            <h6 class="mb-2 font-weight-bold  text-secondary">Tidak Hadir : <span class="text-danger"><?= $hitungBulanIni ?> Hari</span></h6>
+                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat : <span class="text-warning"><?= $terlambatBulanIni ?> Menit</span></h6>
                                         </div>
                                     </div>
                                 </div>
+                                <h6 class="text-secondary font-weight-bold d-flex flex-wrap justify-content-end" style="opacity: 0.5;">Akumulasi Bulan ini</h6>
                             </div>
                         </div>
                     </div>
@@ -31,11 +32,16 @@
                                     <div class="">
                                         <h5 class="mb-2 font-weitght-bold">Tidak Hadir Tahun Ini</h5>
                                         <div class="justify-content-start align-items-center">
-                                            <h6 class="mb-2 font-weight-bold  text-secondary">Tidak Hadir : <span class="text-danger"></span></h6>
-                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat : <span class="text-warning"></span></h6>
+                                            <h6 class="mb-2 font-weight-bold  text-secondary">Tidak Hadir :
+                                                <span class="text-danger"><?= $hitungTahunIni ?> Hari</span>
+                                            </h6>
+                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat :
+                                                <span class="text-warning"><?= $terlambatTahunIni ?> Menit</span>
+                                            </h6>
                                         </div>
                                     </div>
                                 </div>
+                                <h6 class="text-secondary font-weight-bold d-flex flex-wrap justify-content-end" style="opacity: 0.5;">Akumulasi Tahun ini</h6>
                             </div>
                         </div>
                     </div>
@@ -71,7 +77,6 @@
                                 <div class="">
                                     <h4 class="font-weight-bold text-center mb-2">Scan Presensi</h4>
                                 </div>
-
                                 <img src="<?= base_url('uploads/qrcode/' . $filename . '.png') ?>" alt="" class="d-flex mx-auto w-50">
                                 </a>
                                 <!-- <form action="<?= base_url('presensi') ?>" method="get">
@@ -124,18 +129,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if ($absensi) : ?>
-                                            <!-- Jika ada data presensi -->
-                                            <tr>
-                                                <td><?= $absensi->tanggal ?></td>
-                                                <td><?= getStatusPresensi($absensi->created_on) ?></td>
-                                            </tr>
-                                        <?php else : ?>
-                                            <!-- Jika tidak ada data presensi -->
-                                            <tr>
-                                                <td colspan="2">Belum melakukan absen</td>
-                                            </tr>
-                                        <?php endif; ?>
 
                                     </tbody>
                                 </table>
@@ -200,7 +193,7 @@
         };
         let timeString = date.toLocaleTimeString('en-US', options);
 
-        var status = (date.getHours() <= 8) ? 'Tidak Terlambat' : 'Terlambat';
+        var status = (date.getHours() < 8) ? 'Tidak Terlambat' : 'Terlambat';
 
         // Mengganti ikon berdasarkan status
         var statusIcon = document.getElementById('statusIcon');

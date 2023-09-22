@@ -57,32 +57,6 @@ function user_access()
     }
 }
 
-function getStatusPresensi($tanggalPresensi)
-{
-    $waktuBatasHadir = strtotime('08:00:00'); // Waktu batas hadir, pukul 08:00 pagi
-
-    $tanggalPresensiUnix = strtotime($tanggalPresensi);
-
-    if ($tanggalPresensiUnix > $waktuBatasHadir) {
-        return '<p class="mb-0 text-warning d-flex justify-content-start align-items-center">
-        <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
-        <circle cx="12" cy="12" r="8" fill="#db7e06"></circle></svg>
-        </small> Terlambat
-     </p>';
-    } elseif ($tanggalPresensiUnix <= $waktuBatasHadir) {
-        return '<p class="mb-0 text-success d-flex justify-content-start align-items-center">
-        <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
-        <circle cx="12" cy="12" r="8" fill="#3cb72c"></circle></svg>
-        </small> Hadir
-     </p>';
-    } else {
-        return '<p class="mb-0 text-danger d-flex justify-content-start align-items-center">
-        <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
-        <circle cx="12" cy="12" r="8" fill="#F42B3D"></circle></svg>
-        </small> Tidak Hadir
-     </p>';
-    }
-}
 
 function hitungStatusPresensi($karyawan_id)
 {
@@ -133,6 +107,31 @@ function hitungJumlahTidakMasuk($user_id, $tanggal)
     return $jumlah_tidak_masuk;
 }
 
+
+function getHariLibur()
+{
+
+    // Load library HTTP client
+    $CI = get_instance();
+    $CI->load->library('curl');
+
+    // Permintaan ke API Hari Libur
+    $response = $CI->curl->simple_get('https://api-harilibur.vercel.app/api');
+
+    if ($response) {
+        // Data JSON dari API
+        $data = json_decode($response);
+
+        // Proses data sesuai kebutuhan Anda
+        // Misalnya, Anda dapat menyimpannya ke dalam model atau menggunakannya dalam logika bisnis
+
+        return $data;
+    } else {
+        // Handle kesalahan jika tidak dapat terhubung ke API
+        return false;
+    }
+}
+
 function qrcode($data, $filename)
 {
     $CI = &get_instance();
@@ -145,3 +144,30 @@ function qrcode($data, $filename)
 
     QRcode::png($url, FCPATH . "./uploads/qrcode/$filename.png", QR_ECLEVEL_H, 10);
 }
+
+// function getStatusPresensi($tanggalPresensi)
+// {
+//     $waktuBatasHadir = strtotime('08:00:00'); // Waktu batas hadir, pukul 08:00 pagi
+
+//     $tanggalPresensiUnix = strtotime($tanggalPresensi);
+
+//     if ($tanggalPresensiUnix > $waktuBatasHadir) {
+//         return '<p class="mb-0 text-warning d-flex justify-content-start align-items-center">
+//         <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
+//         <circle cx="12" cy="12" r="8" fill="#db7e06"></circle></svg>
+//         </small> Terlambat
+//      </p>';
+//     } elseif ($tanggalPresensiUnix <= $waktuBatasHadir) {
+//         return '<p class="mb-0 text-success d-flex justify-content-start align-items-center">
+//         <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
+//         <circle cx="12" cy="12" r="8" fill="#3cb72c"></circle></svg>
+//         </small> Hadir
+//      </p>';
+//     } else {
+//         return '<p class="mb-0 text-danger d-flex justify-content-start align-items-center">
+//         <small><svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none">                                                
+//         <circle cx="12" cy="12" r="8" fill="#F42B3D"></circle></svg>
+//         </small> Tidak Hadir
+//      </p>';
+//     }
+// }
