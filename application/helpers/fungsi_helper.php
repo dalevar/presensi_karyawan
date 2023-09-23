@@ -167,39 +167,11 @@ function getStatus($userId, $bulanIni)
     $currentDate = $tanggalAwal;
     while ($currentDate <= $tanggalAkhir) {
         $tanggalPresensi = date('Y-m-d', strtotime($currentDate));
+
         $statusItem = array(
             'tanggal' => $tanggalPresensi,
-            'status' => ''
+            'status' => '' // Default status
         );
-
-        foreach ($presensiBulanIni as $absen) {
-            if ($absen->tanggal == $tanggalPresensi) {
-                // Periksa waktu presensi
-                $waktuPresensi = strtotime($absen->created_on);
-                $waktuHadir = strtotime('08:00:00'); // Ganti dengan waktu hadir yang sesuai
-
-                // Cek jika waktu presensi lebih awal atau sama dengan waktu hadir
-                if ($waktuPresensi <= $waktuHadir) {
-                    $statusItem['status'] = 'Hadir';
-                } else {
-                    $statusItem['status'] = 'Terlambat';
-                }
-
-                // Hentikan loop foreach karena data presensi sudah ditemukan
-                break;
-            }
-        }
-
-        // Jika status masih kosong, itu berarti karyawan tidak hadir
-        if ($statusItem['status'] == '') {
-            $statusItem['status'] = 'Tidak Hadir';
-        }
-
-        // $absen = $presensiBulanIni->tanggal;
-        // $statusItem = array(
-        //     'tanggal' => $tanggalPresensi,
-        //     'status' => $absen // Default status
-        // );
 
         // Cek apakah tanggal ini merupakan hari libur
         foreach ($dataLibur as $holiday) {
