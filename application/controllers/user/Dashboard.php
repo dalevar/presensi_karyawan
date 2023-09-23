@@ -56,8 +56,8 @@ class Dashboard extends CI_Controller
             }
 
             // Hitungan Status Terlambat
-            $statusPresensi = hitungStatusPresensi($karyawan->id);
-            $data['status_presensi'] = $statusPresensi;
+            // $statusPresensi = hitungStatusPresensi($karyawan->id);
+            // $data['status_presensi'] = $statusPresensi;
 
             // Mendapatkan tanggal saat ini
             $tanggal = date('Y-m-d');
@@ -99,42 +99,17 @@ class Dashboard extends CI_Controller
             $data['terlambatBulanIni'] = $terlambat;
             $data['terlambatTahunIni'] = $terlambatPerTahun;
 
-            //data Hari Libur dari API
+            // data Hari Libur dari API
             $dataHariLibur = getHariLibur();
             $data['dataHariLibur'] = $dataHariLibur;
 
-            $dataPresensi = $presensi->getPresensiBulanIni($userId, $tanggal);
-            $tahun = $tahun;
-            $bulan = $bulanIni; // Ganti dengan bulan yang sesuai (1 untuk Januari, 2 untuk Februari, dst.)
+            //Tanggal
+            $tanggalBulanIni = getTanggal();
+            $data['tanggalBulan'] = $tanggalBulanIni;
 
-            $tanggalAwal = new DateTime("$tahun-$bulan-01");
-            $tanggalAkhir = new DateTime("$tahun-$bulan-01");
-            $tanggalAkhir->modify('last day of this month');
-
-            $interval = new DateInterval('P1D');
-            $tanggalRange = new DatePeriod($tanggalAwal, $interval, $tanggalAkhir);
-
-            $tanggalBulanIni = [];
-
-            foreach ($tanggalRange as $tanggal) {
-                $tanggalBulanIni[] = $tanggal->format('Y-m-d');
-            }
-            usort($tanggalBulanIni, function ($a, $b) use ($dataPresensi) {
-                $countA = 0;
-                $countB = 0;
-
-                foreach ($dataPresensi as $presensi) {
-                    if ($presensi->tanggal == $a) {
-                        $countA++;
-                    }
-                    if ($presensi->tanggal == $b) {
-                        $countB++;
-                    }
-                }
-
-                return $countB - $countA; // Urutkan secara menurun
-            });
-
+            //Status
+            $status = getStatus($userId, $tanggal);
+            $data['status'] = $status;
 
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);

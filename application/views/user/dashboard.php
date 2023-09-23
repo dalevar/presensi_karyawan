@@ -129,7 +129,29 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <?php foreach ($status as $st) : ?>
+                                            <tr>
+                                                <td><?= $st['tanggal']; ?></td>
+                                                <td><?= $st['status']; ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                        <!-- <?php foreach ($tanggalBulan as $tl) : ?>
+                                            <tr>
+                                                <td><?= $tl; ?></td>
+                                                <td>
+                                                    <?php
+                                                    $hari = date('N', strtotime($tl)); //hari (1 = Senin, 7 = Minggu)
 
+                                                    if ($hari == 7) {
+                                                        echo "Libur";
+                                                    } else {
+                                                        $status = getStatusLibur($tl);
+                                                        echo $status;
+                                                    }
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?> -->
                                     </tbody>
                                 </table>
                             </div>

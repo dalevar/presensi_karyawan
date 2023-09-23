@@ -51,37 +51,8 @@ function user_access()
     // $login_access = $ci->fungsi->user_login()->login_access;
 
     if (isset($userData['login_access']) && $userData['login_access'] != 0) {
-        // Jika login_access adalah 0, block akses
+
         redirect('admin/dashboard');
-        // show_error('Access Denied', 403);
-    }
-}
-
-
-function hitungStatusPresensi($karyawan_id)
-{
-    $CI = &get_instance();
-    $CI->load->model('PresensiModel');
-    // Mengambil data presensi terakhir untuk karyawan tertentu
-    $lastPresensi = $CI->PresensiModel->where('created_by', $karyawan_id)
-        ->orderBy('created_on', 'DESC')
-        ->first();
-
-    if ($lastPresensi) {
-        // Mengambil tanggal dan jam presensi terakhir
-        $tanggalPresensi = new DateTime($lastPresensi->created_on);
-
-        // Menentukan waktu yang dianggap sebagai batas waktu "Terlambat" (misalnya pukul 08:00)
-        $batasWaktu = new DateTime($tanggalPresensi->format('Y-m-d') . ' 08:00:00');
-
-        // Memeriksa apakah tanggal dan jam presensi kurang dari batas waktu
-        if ($tanggalPresensi < $batasWaktu) {
-            return '<span class="text-warning">Terlambat</span>';
-        } else {
-            return 'Tidak Terlambat';
-        }
-    } else {
-        return "Data presensi tidak ditemukan.";
     }
 }
 
@@ -122,15 +93,139 @@ function getHariLibur()
         // Data JSON dari API
         $data = json_decode($response);
 
+        $filteredData = array_filter($data, function ($item) {
+            return isset($item->is_national_holiday) && $item->is_national_holiday === true;
+        });
         // Proses data sesuai kebutuhan Anda
         // Misalnya, Anda dapat menyimpannya ke dalam model atau menggunakannya dalam logika bisnis
 
-        return $data;
+        return $filteredData;
     } else {
         // Handle kesalahan jika tidak dapat terhubung ke API
         return false;
     }
 }
+
+function getTanggal()
+{
+    $ci = &get_instance();
+
+    // Mendapatkan bulan dan tahun saat ini
+    $bulanIni = date('m');
+    $tahunIni = date('Y');
+
+    // Menghitung jumlah hari dalam bulan ini
+    $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulanIni, $tahunIni);
+
+    // Menghasilkan daftar tanggal dalam bulan ini
+    $tanggalBulanIni = array();
+    for ($tanggal = 1; $tanggal <= $jumlahHari; $tanggal++) {
+        $tanggalFormatted = sprintf("%04d-%02d-%02d", $tahunIni, $bulanIni, $tanggal);
+        $tanggalBulanIni[] = $tanggalFormatted;
+    }
+
+    return $tanggalBulanIni;
+}
+
+
+function getStatusLibur($tanggal)
+{
+    // Mengambil data dari API Hari Libur
+    $dataHariLibur = getHariLibur();
+
+    foreach ($dataHariLibur as $hariLibur) {
+        //Hari Libur sama dengan tanggal lalu ditampilkan tanggal mana saja yang menyediakan hari libur
+        if ($hariLibur->holiday_date == $tanggal) {
+            echo "Libur : $hariLibur->holiday_name"; // tampilin hari libur
+            return;
+        }
+    }
+    return "";
+}
+
+function getStatus($userId, $bulanIni)
+{
+    $ci = &get_instance();
+
+    // Get data from your custom helper functions
+
+    $dataLibur = getHariLibur();
+
+    // Fetch presensi data using your model
+    $ci->load->model('PresensiModel');
+    $presensiModel = new PresensiModel();
+    $presensiBulanIni = $presensiModel->getPresensiBulanIni($userId, $bulanIni);
+
+    // Process the data and return it as an array
+    $status = array();
+
+    // Tentukan tanggal awal dan akhir bulan
+    $tanggalAwal = date('Y-m-01', strtotime($bulanIni));
+    $tanggalAkhir = date('Y-m-t', strtotime($bulanIni));
+
+    // Loop untuk menghasilkan status untuk semua tanggal dalam bulan ini
+    $currentDate = $tanggalAwal;
+    while ($currentDate <= $tanggalAkhir) {
+        $tanggalPresensi = date('Y-m-d', strtotime($currentDate));
+        $statusItem = array(
+            'tanggal' => $tanggalPresensi,
+            'status' => ''
+        );
+
+        foreach ($presensiBulanIni as $absen) {
+            if ($absen->tanggal == $tanggalPresensi) {
+                // Periksa waktu presensi
+                $waktuPresensi = strtotime($absen->created_on);
+                $waktuHadir = strtotime('08:00:00'); // Ganti dengan waktu hadir yang sesuai
+
+                // Cek jika waktu presensi lebih awal atau sama dengan waktu hadir
+                if ($waktuPresensi <= $waktuHadir) {
+                    $statusItem['status'] = 'Hadir';
+                } else {
+                    $statusItem['status'] = 'Terlambat';
+                }
+
+                // Hentikan loop foreach karena data presensi sudah ditemukan
+                break;
+            }
+        }
+
+        // Jika status masih kosong, itu berarti karyawan tidak hadir
+        if ($statusItem['status'] == '') {
+            $statusItem['status'] = 'Tidak Hadir';
+        }
+
+        // $absen = $presensiBulanIni->tanggal;
+        // $statusItem = array(
+        //     'tanggal' => $tanggalPresensi,
+        //     'status' => $absen // Default status
+        // );
+
+        // Cek apakah tanggal ini merupakan hari libur
+        foreach ($dataLibur as $holiday) {
+            if ($holiday->holiday_date == $tanggalPresensi) {
+                $statusItem['status'] = "<span class='text-danger'>Libur: {$holiday->holiday_name}</span>";
+                break;
+            }
+        }
+
+        $hari = date('N', strtotime($tanggalPresensi));
+        if ($hari == 7) {
+            $statusItem['status'] = "<span class='text-danger'>Libur</span>";
+        }
+
+
+        // Tambahkan status ke dalam array
+        $status[] = $statusItem;
+
+        // Lanjutkan ke tanggal berikutnya
+        $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
+    }
+
+    // Tampilkan semua status
+    return $status;
+}
+
 
 function qrcode($data, $filename)
 {
