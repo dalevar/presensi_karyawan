@@ -85,6 +85,7 @@ class Dashboard extends CI_Controller
             //menghitung data dinamis kehadiran
             $bulanIni = date('m', strtotime($tanggal));
             $tahun = date('Y', strtotime($tanggal));
+
             $presensi = new PresensiModel();
             //per Bulan
             $hitung = $presensi->hitungTidakHadirBulanIni($userId, $tanggal, $bulanIni, $tahun);
@@ -99,17 +100,21 @@ class Dashboard extends CI_Controller
             $data['terlambatBulanIni'] = $terlambat;
             $data['terlambatTahunIni'] = $terlambatPerTahun;
 
-            // data Hari Libur dari API
-            $dataHariLibur = getHariLibur();
-            $data['dataHariLibur'] = $dataHariLibur;
+            // // data Hari Libur dari API
+            // $dataHariLibur = getHariLibur();
+            // $data['dataHariLibur'] = $dataHariLibur;
 
             //Tanggal
-            $tanggalBulanIni = getTanggal();
-            $data['tanggalBulan'] = $tanggalBulanIni;
+            // $tanggalBulanIni = getTanggal();
+
+            // $data['tanggalBulan'] = $tanggalBulanIni;
 
             //Status
             $status = getStatus($userId, $tanggal);
+            // var_dump($status);
+            // die;
             $data['status'] = $status;
+
 
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);

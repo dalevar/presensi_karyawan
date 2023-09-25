@@ -117,11 +117,34 @@
                     </div>
                     <div class="col-md-7">
                         <div class="card">
-                            <div class="card-body " style="position: relative;">
-                                <div class="header-title">
+                            <div class="card-header">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center pr-3">
                                     <h5 class="card-title">Presensi Bulan ini</h5>
+                                    <div class="form-group mb-0 d-flex flex-row">
+                                        <div class="col-md-8">
+                                            <select name="" aria-controls="" class="custom-select custom-select-sm form-control form-control-sm">
+                                                <option value="">Januari</option>
+                                                <option value="">Februari</option>
+                                                <option value="">Maret</option>
+                                                <option value="">April</option>
+                                                <option value="">Mei</option>
+                                                <option value="">Juni</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <select name="" aria-controls="" class="custom-select custom-select-sm form-control form-control-sm">
+                                                <option value="">2023</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <table id="datatable" class="table data-table table-striped table-bordered">
+                                <!-- <span class="text-small text-secondary">September, 2023</span> -->
+                                <!-- <div class="inline float-right">
+                                </div> -->
+                            </div>
+                            <div class="card-body " style="position: relative;">
+                                <!-- <table id="datatable" class="table data-table table-striped table-bordered table-responsive-sm">
                                     <thead class="table-color-heading">
                                         <tr>
                                             <th width="15%">Tanggal Presensi</th>
@@ -152,8 +175,9 @@
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?> -->
-                                    </tbody>
-                                </table>
+                                <!-- </tbody>
+                                </table> -->
+                                <div id="calendar"></div>
                             </div>
                         </div>
                     </div>
@@ -207,6 +231,21 @@
 </div> -->
 
 <script>
+    //FULL CALENDAR
+    $(document).ready(function() {
+        var calendarEl = document.getElementById('calendar');
+        var events = <?= json_encode($status); ?>;
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'id', //bahasa Indonesia
+            editable: false,
+            events: events
+        });
+
+        calendar.render();
+    });
+
+
+    //WAKTU
     function currentTime() {
         let date = new Date();
         let options = {

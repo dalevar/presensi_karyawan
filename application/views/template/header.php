@@ -22,6 +22,12 @@
 	<!-- Sweetalert 2 -->
 	<link rel="stylesheet" href="<?= base_url('assets') ?>/js/sweetalert2/cdn.jsdelivr.net_npm_sweetalert2@11_dist_sweetalert2.min.css">
 
+	<!-- FULL CALENDAR -->
+	<!-- <link rel="stylesheet" href="<?= base_url('assets/calendar') ?>/bootstrap.css"> -->
+	<link rel="stylesheet" href="<?= base_url('assets/calendar') ?>/fullcalendar.css">
+	<script src="<?= base_url('assets/calendar') ?>/jquery.min.js"></script>
+	<script src="<?= base_url('assets/calendar') ?>/jquery-ui.min.js"></script>
+	<script src="<?= base_url('assets/calendar') ?>/moment.min.js"></script>
 </head>
 
 <body class=" color-light ">

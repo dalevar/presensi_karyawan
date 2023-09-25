@@ -120,12 +120,66 @@ function getTanggal()
     // Menghasilkan daftar tanggal dalam bulan ini
     $tanggalBulanIni = array();
     for ($tanggal = 1; $tanggal <= $jumlahHari; $tanggal++) {
-        $tanggalFormatted = sprintf("%04d-%02d-%02d", $tahunIni, $bulanIni, $tanggal);
+        $tanggalFormatted = sprintf("%04d-%02d-%02d 08:00:00", $tahunIni, $bulanIni, $tanggal);
         $tanggalBulanIni[] = $tanggalFormatted;
     }
 
     return $tanggalBulanIni;
 }
+
+// function getTanggalHari()
+// {
+//     $ci = &get_instance();
+
+//     // Mendapatkan bulan dan tahun saat ini
+//     $bulanIni = date('m');
+//     $tahunIni = date('Y');
+
+//     // Menghitung jumlah hari dalam bulan ini
+//     $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulanIni, $tahunIni);
+
+//     // Menghasilkan daftar tanggal dalam bulan ini dengan format "Senin, 01"
+//     $tanggalBulanIni = array();
+//     for ($tanggal = 1; $tanggal <= $jumlahHari; $tanggal++) {
+//         // Format tanggal dengan format "Senin, 01" dalam bahasa Indonesia
+//         $tanggalFormatted = getHariIndonesia(date('N', strtotime("$tahunIni-$bulanIni-$tanggal"))) . ', ' . date('d', strtotime("$tahunIni-$bulanIni-$tanggal")) . date('S', strtotime("$tahunIni-$bulanIni-$tanggal"));
+//         $tanggalBulanIni[] = $tanggalFormatted;
+//     }
+
+//     return $tanggalBulanIni;
+// }
+
+//nama hari indonesia
+// function getHariIndonesia($dayOfWeek)
+// {
+//     // Daftar nama hari dalam bahasa Indonesia
+//     $hariIndonesia = array(
+//         'Minggu',
+//         'Senin',
+//         'Selasa',
+//         'Rabu',
+//         'Kamis',
+//         'Jumat',
+//         'Sabtu'
+//     );
+
+//     return $hariIndonesia[$dayOfWeek - 1];
+// }
+
+function indo_date($date, $print_day = false)
+{
+    $day        = [1 => 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    $month      = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    $split      = explode('-', $date);
+    $nice_date  = $month[(int) $split[1]] . ', ' .  $split[2];
+
+    if ($print_day) {
+        $num = date('N', strtotime($date));
+        return $day[$num] . ', ' . $nice_date;
+    }
+    return $nice_date;
+}
+
 
 
 function getStatusLibur($tanggal)
@@ -136,7 +190,7 @@ function getStatusLibur($tanggal)
     foreach ($dataHariLibur as $hariLibur) {
         //Hari Libur sama dengan tanggal lalu ditampilkan tanggal mana saja yang menyediakan hari libur
         if ($hariLibur->holiday_date == $tanggal) {
-            echo "Libur : $hariLibur->holiday_name"; // tampilin hari libur
+            echo "Libur : $hariLibur->holiday_name"; // tampil hari libur
             return;
         }
     }
@@ -147,8 +201,6 @@ function getStatus($userId, $bulanIni)
 {
     $ci = &get_instance();
 
-    // Get data from your custom helper functions
-
     $dataLibur = getHariLibur();
 
     // Fetch presensi data using your model
@@ -156,36 +208,62 @@ function getStatus($userId, $bulanIni)
     $presensiModel = new PresensiModel();
     $presensiBulanIni = $presensiModel->getPresensiBulanIni($userId, $bulanIni);
 
-    // Process the data and return it as an array
     $status = array();
 
     // Tentukan tanggal awal dan akhir bulan
-    $tanggalAwal = date('Y-m-01', strtotime($bulanIni));
-    $tanggalAkhir = date('Y-m-t', strtotime($bulanIni));
+    $tanggalAwal = date('Y-m-01 08:00:00', strtotime($bulanIni));
+    $tanggalAkhir = date('Y-m-t 08:00:00', strtotime($bulanIni));
 
     // Loop untuk menghasilkan status untuk semua tanggal dalam bulan ini
     $currentDate = $tanggalAwal;
     while ($currentDate <= $tanggalAkhir) {
-        $tanggalPresensi = date('Y-m-d', strtotime($currentDate));
+        $tanggal = date('Y-m-d', strtotime($currentDate));
+        $tanggalPresensi = date('Y-m-d 08:00:00', strtotime($currentDate));
+        $tanggalLibur = date('Y-m-d', strtotime($currentDate));
+        $selisihTotalMenit = 0;
+
+        $indodate = indo_date($tanggal);
 
         $statusItem = array(
-            'tanggal' => $tanggalPresensi,
+            'tanggal' => $indodate,
             'status' => '' // Default status
         );
 
         // Cek apakah tanggal ini merupakan hari libur
         foreach ($dataLibur as $holiday) {
-            if ($holiday->holiday_date == $tanggalPresensi) {
+            if ($holiday->holiday_date == $tanggalLibur) {
                 $statusItem['status'] = "<span class='text-danger'>Libur: {$holiday->holiday_name}</span>";
                 break;
             }
         }
 
+        foreach ($presensiBulanIni as $presensi) {
+            $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));
+            $jamCreatedOn = date('H:i:s', strtotime($presensi->created_on));
+
+            $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+            if ($selisihWaktu > 0) {
+                // Mengkonversi selisih waktu ke menit
+                $selisihMenit = floor($selisihWaktu / 60);
+                $selisihTotalMenit += $selisihMenit;
+            }
+
+            if ($presensi->tanggal == $tanggalPresensi) {
+                if ($presensi->created_on <= $tanggalPresensi) {
+                    $statusItem['status'] = "<span class='text-success'><i class='ri-checkbox-circle-line'></i> Hadir</span>";
+                } else {
+                    $statusItem['status'] = "<span class='text-warning'><i class='ri-error-warning-line'></i> Terlambat : {$selisihMenit} Menit</span>";
+                    break;
+                }
+            }
+        }
+
+
+        //hari minggu
         $hari = date('N', strtotime($tanggalPresensi));
         if ($hari == 7) {
             $statusItem['status'] = "<span class='text-danger'>Libur</span>";
         }
-
 
         // Tambahkan status ke dalam array
         $status[] = $statusItem;
@@ -197,6 +275,7 @@ function getStatus($userId, $bulanIni)
     // Tampilkan semua status
     return $status;
 }
+
 
 
 function qrcode($data, $filename)
@@ -237,4 +316,126 @@ function qrcode($data, $filename)
 //         </small> Tidak Hadir
 //      </p>';
 //     }
+// }
+
+// function getStatus($userId, $tanggal)
+// {
+//     $ci = &get_instance();
+
+//     $ci->load->model('PresensiModel');
+//     $presensiModel = new PresensiModel();
+//     $presensi = $presensiModel->getPresensiBulanIni($userId, $tanggal);
+//     // $tanggalPresensi = PresensiModel::where('user_id', $userId)
+//     //     ->where('tanggal', $tanggal)
+//     //     ->first();
+
+//     $hariLibur = getHariLibur();
+//     $status = array();
+
+//     // Tentukan tanggal awal dan akhir bulan
+//     $tanggalAwal = date('Y-m-01', strtotime($tanggal));
+//     $tanggalAkhir = date('Y-m-t', strtotime($tanggal));
+
+//     $currentDate = $tanggalAwal;
+//     while ($currentDate <= $tanggalAkhir) {
+
+
+//         $statusItem = array(
+//             'tanggal' => '',
+//             'status' => '' // Default status
+//         );
+//     }
+// }
+
+// function getStatus($userId, $tanggal)
+// {
+//     $ci = &get_instance();
+//     $hariLibur = getHariLibur();
+
+//     $ci->load->model('PresensiModel');
+//     $presensiModel = new PresensiModel();
+
+//     // Mengambil data presensi untuk user dan tanggal tertentu
+//     $presensi = $presensiModel->getPresensiBulanIni($userId, $tanggal)->first();
+
+//     $status = array();
+//     $tanggalPresensi = date('Y-m-d', strtotime($tanggal));
+//     $waktuBatasHadir = '08:00:00';
+
+//     $statusItem = array(
+//         'tanggal' => $tanggalPresensi,
+//         'status' => '' // Default status
+//     );
+
+//     // Cek apakah ada data presensi untuk tanggal ini
+//     if ($presensi) {
+//         if ($presensi->created_on >= $waktuBatasHadir) {
+//             $statusItem['status'] = "<span class='text-success'>Hadir</span>";
+//         } else {
+//             $statusItem['status'] = "<span class='text-success'>Terlambat</span>";
+//         }
+//     } else {
+//         // Jika tidak ada data presensi, mungkin ini adalah hari libur
+//         foreach ($hariLibur as $holiday) {
+//             if ($holiday->holiday_date == $tanggalPresensi) {
+//                 $statusItem['status'] = "<span class='text-danger'>Libur: {$holiday->holiday_name}</span>";
+//                 break;
+//             }
+//         }
+//     }
+
+//     $status[] = $statusItem;
+
+//     return $status;
+// }
+
+// function getStatus($userId, $bulanIni)
+// {
+//     $ci = &get_instance();
+//     $hariLibur = getHariLibur();
+//     $tanggal = getTanggal();
+
+//     $ci->load->model('PresensiModel');
+//     $presensiModel = new PresensiModel();
+//     $presensiBulanIni = $presensiModel->getPresensiBulanIni($userId, $bulanIni)->first();
+
+//     $status = array();
+
+//     $tanggalAwal = date('Y-m-01', strtotime($bulanIni));
+//     $tanggalAkhir = date('Y-m-t', strtotime($bulanIni));
+
+//     $currentDate = $tanggalAwal;
+//     while ($tanggal <= $tanggalAkhir) {
+//         $statusItem = array(
+//             'tanggal' => $tanggal,
+//             'status' => ''
+//         );
+
+//         //Cek apakah tanggal ini merupakan hari libur
+//         foreach ($hariLibur as $holiday) {
+//             if ($holiday->holiday_date == $tanggal) {
+//                 $statusItem['status'] = "<span class='text-danger'>Libur: {$holiday->holiday_name}</span>";
+//                 break;
+//             }
+//         }
+
+//         foreach ($presensiBulanIni as $presensi) {
+//             if (is_object($presensi) && property_exists($presensi, 'tanggal') && $presensi->created_on <= $currentDate) {
+//                 $statusItem['status'] = "<span class='text-success'>Hadir</span>";
+//                 break;
+//             }
+//         }
+
+//         $hari = date('N', strtotime($bulanIni));
+//         if ($hari == 7) {
+//             $statusItem['status'] = "<span class='text-danger'>Libur</span>";
+//         }
+
+//         // Tambahkan status ke dalam array
+//         $status[] = $statusItem;
+
+//         // Lanjutkan ke tanggal berikutnya
+//         $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
+//     }
+//     return $status;
 // }
