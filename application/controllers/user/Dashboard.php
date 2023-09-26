@@ -105,9 +105,8 @@ class Dashboard extends CI_Controller
             // $data['dataHariLibur'] = $dataHariLibur;
 
             //Tanggal
-            // $tanggalBulanIni = getTanggal();
-
-            // $data['tanggalBulan'] = $tanggalBulanIni;
+            $tanggalBulanIni = getTanggal();
+            $data['getTanggal'] = $tanggalBulanIni;
 
             //Status
             $status = getStatus($userId, $tanggal);

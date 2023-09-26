@@ -16,18 +16,24 @@
 
 
 	<!-- jquery -->
+	<!-- <script src="<?= base_url('assets/js/') ?>code.jquery.com_jquery-3.7.1.min.js"></script> -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
 	<!-- Sweetalert 2 -->
 	<link rel="stylesheet" href="<?= base_url('assets') ?>/js/sweetalert2/cdn.jsdelivr.net_npm_sweetalert2@11_dist_sweetalert2.min.css">
 
-	<!-- FULL CALENDAR -->
-	<!-- <link rel="stylesheet" href="<?= base_url('assets/calendar') ?>/bootstrap.css"> -->
-	<link rel="stylesheet" href="<?= base_url('assets/calendar') ?>/fullcalendar.css">
-	<script src="<?= base_url('assets/calendar') ?>/jquery.min.js"></script>
-	<script src="<?= base_url('assets/calendar') ?>/jquery-ui.min.js"></script>
-	<script src="<?= base_url('assets/calendar') ?>/moment.min.js"></script>
+	<!-- CALENDAR -->
+	<link rel="stylesheet" href="<?= base_url('assets/calendar/src/calendar-gc.css') ?>">
+
+
+
+	<!-- FULLCALENDAR -->
+	<!-- <script src="<?= base_url('assets/fullcalendar/dist/index.global.js') ?>"></script>
+	<script src="<?= base_url('assets/fullcalendar/packages/core/index.global.js') ?>"></script>
+	<script src="<?= base_url('assets/fullcalendar/packages/core/locales/id.global.min.js') ?>"></script>
+	<script src="<?= base_url('assets/fullcalendar/packages/daygrid/index.global.min.js') ?>"></script> -->
+
 </head>
 
 <body class=" color-light ">

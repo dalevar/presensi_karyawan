@@ -127,6 +127,26 @@ function getTanggal()
     return $tanggalBulanIni;
 }
 
+function getNamaHari($tanggal)
+{
+    $namaHariEnglish = date("D", strtotime($tanggal));
+
+    // Daftar nama hari dalam bahasa Indonesia
+    $namaHariIndonesia = [
+        'Sun' => 'Minggu',
+        'Mon' => 'Senin',
+        'Tue' => 'Selasa',
+        'Wed' => 'Rabu',
+        'Thu' => 'Kamis',
+        'Fri' => 'Jumat',
+        'Sat' => 'Sabtu'
+    ];
+
+    // Mengganti nama hari dalam bahasa Inggris dengan nama dalam bahasa Indonesia
+    return $namaHariIndonesia[$namaHariEnglish];
+}
+
+
 // function getTanggalHari()
 // {
 //     $ci = &get_instance();
@@ -150,21 +170,21 @@ function getTanggal()
 // }
 
 //nama hari indonesia
-// function getHariIndonesia($dayOfWeek)
-// {
-//     // Daftar nama hari dalam bahasa Indonesia
-//     $hariIndonesia = array(
-//         'Minggu',
-//         'Senin',
-//         'Selasa',
-//         'Rabu',
-//         'Kamis',
-//         'Jumat',
-//         'Sabtu'
-//     );
+function getHariIndonesia($dayOfWeek)
+{
+    // Daftar nama hari dalam bahasa Indonesia
+    $hariIndonesia = array(
+        'Minggu',
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu'
+    );
 
-//     return $hariIndonesia[$dayOfWeek - 1];
-// }
+    return $hariIndonesia[$dayOfWeek - 1];
+}
 
 function indo_date($date, $print_day = false)
 {
@@ -273,7 +293,15 @@ function getStatus($userId, $bulanIni)
     }
 
     // Tampilkan semua status
-    return $status;
+    // return $status;
+    // Mengembalikan data dalam format JSON
+    // Cek apakah permintaan datang melalui AJAX
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        // Jika ya, kirim data dalam format JSON
+        header('Content-Type: application/json');
+        echo json_encode($status);
+        exit();
+    }
 }
 
 
@@ -318,34 +346,7 @@ function qrcode($data, $filename)
 //     }
 // }
 
-// function getStatus($userId, $tanggal)
-// {
-//     $ci = &get_instance();
 
-//     $ci->load->model('PresensiModel');
-//     $presensiModel = new PresensiModel();
-//     $presensi = $presensiModel->getPresensiBulanIni($userId, $tanggal);
-//     // $tanggalPresensi = PresensiModel::where('user_id', $userId)
-//     //     ->where('tanggal', $tanggal)
-//     //     ->first();
-
-//     $hariLibur = getHariLibur();
-//     $status = array();
-
-//     // Tentukan tanggal awal dan akhir bulan
-//     $tanggalAwal = date('Y-m-01', strtotime($tanggal));
-//     $tanggalAkhir = date('Y-m-t', strtotime($tanggal));
-
-//     $currentDate = $tanggalAwal;
-//     while ($currentDate <= $tanggalAkhir) {
-
-
-//         $statusItem = array(
-//             'tanggal' => '',
-//             'status' => '' // Default status
-//         );
-//     }
-// }
 
 // function getStatus($userId, $tanggal)
 // {

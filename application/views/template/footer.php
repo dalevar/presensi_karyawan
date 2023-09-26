@@ -58,9 +58,13 @@
 	<!-- Sweetalerts 2-->
 	<script src="<?= base_url('assets/js/sweetalert2/') ?>cdn.jsdelivr.net_npm_sweetalert2@11_dist_sweetalert2.min.js"></script>
 
-	<script src="<?= base_url('assets/calendar') ?>/fullcalendar.min.js"></script>
-	<script src="<?= base_url('assets/calendar') ?>/index.global.min.js"></script>
-	<script src="<?= base_url('assets/calendar') ?>/id.global.js"></script>
+	<!-- CALENDAR -->
+	<script src="<?= base_url('assets/calendar/src/calendar-gc.js') ?>"></script>
+
+
+	<!-- FULLCALENDAR
+	<script src="<?= base_url('assets/fullcalendar/packages/core/index.global.js') ?>"></script>
+	<script src="<?= base_url('assets/fullcalendar/packages/core/locales/id.global.min.js') ?>"></script> -->
 
 
 	<script>
