@@ -66,6 +66,11 @@
 	<script src="<?= base_url('assets/fullcalendar/packages/core/index.global.js') ?>"></script>
 	<script src="<?= base_url('assets/fullcalendar/packages/core/locales/id.global.min.js') ?>"></script> -->
 
+	<script type='text/javascript'>
+		document.addEventListener('DOMContentLoaded', function() {
+			window.setTimeout(document.querySelector('svg').classList.add('animated'), 1000);
+		})
+	</script>
 
 	<script>
 		$(document).ready(function() {

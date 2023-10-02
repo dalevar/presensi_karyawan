@@ -61,6 +61,8 @@ class Dashboard extends CI_Controller
 
             // Mendapatkan tanggal saat ini
             $tanggal = date('Y-m-d');
+            $tanggalAbsen = date('Y-m-d 08:00:00');
+            $tanggalHadir = date('Y-m-d H:i:s');
 
             //QRCode
             $qrModel = new QrcodeModel();
@@ -68,13 +70,15 @@ class Dashboard extends CI_Controller
             $dataUser = [
                 'user_id' => $userId,
                 'code' => $qrcode->code,
-                'created_on' => $tanggal,
+                'tanggal' => $tanggalAbsen,
+                'created_by' => $karyawan->id,
+                'created_on' => $tanggalHadir,
             ];
             $dataString = json_encode($dataUser);
             $filename = $userId;
             qrcode($dataString, $filename);
             $data['filename'] = $filename;
-            $data['absen'] = $dataUser;
+            $data['absen'] = json_encode($dataUser);
             $data['tanggal'] = $tanggal;
 
             //data presensi
@@ -108,17 +112,75 @@ class Dashboard extends CI_Controller
             $tanggalBulanIni = getTanggal();
             $data['getTanggal'] = $tanggalBulanIni;
 
+            // $month = date('n');
+            // $year = date('Y');
+            // $calendar = generateCalendar($userId, $year, $month, $bulanIni);
+
+            // $data['calendar'] = $calendar;
+            // var_dump($data['calendar']);
+            // die;
+
             //Status
             $status = getStatus($userId, $tanggal);
             // var_dump($status);
             // die;
             $data['status'] = $status;
 
+            $existAbsen = PresensiModel::where('user_id', $userId)
+                ->where('tanggal', $tanggalAbsen)
+                ->first();
+            $data['existAbsen'] = $existAbsen;
+            $data['tanggalAbsen'] = $tanggalAbsen;
 
+            // $year = $this->input->get('year') ? $this->input->get('year') : date('Y');
+            // $month = $this->input->get('month') ? $this->input->get('month') : date('n');
+            // $presensiData = $this->getPresensiData($userId, $year, $month);
+            // $data['presensiData'] = $presensiData;
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);
             $this->load->view('User/dashboard', $data);
             $this->load->view('template/footer');
         }
     }
+
+    public function getPresensiData()
+    {
+        // Ambil parameter dari permintaan AJAX
+        $userId = $_POST['userId'];
+        $year = $_POST['year'];
+        $month = $_POST['month'];
+
+        // Panggil fungsi untuk mengambil data presensi
+        $presensiData = getPresensiData($userId, $year, $month);
+
+        // Kembalikan data presensi dalam format yang sesuai (misalnya, dalam bentuk HTML)
+        echo generatePresensiHTML($presensiData);
+    }
+
+
+    // public function getPresensiData()
+    // {
+    //     $year = $this->input->get('year');
+    //     $month = $this->input->get('month');
+    //     $userData = $this->session->userdata('user_data');
+    //     $userId = $userData['id'];
+
+    //     // Panggil model atau metode lainnya untuk mengambil data presensi
+    //     $presensiData = $this->PresensiModel->getPresensiData($userId, $year, $month);
+
+
+    //     // Kembalikan data presensi dalam format JSON
+    //     header('Content-Type: application/json');
+    //     echo json_encode($presensiData);
+    // }
+
+
+    // private function getPresensiData($userId, $year, $month)
+    // {
+    //     // Gantilah ini dengan logika Anda untuk mengambil data presensi dari database
+    //     // Gunakan model atau metode yang sesuai dengan framework CodeIgniter
+    //     $this->load->model('PresensiModel'); // Gantilah dengan nama model Anda
+    //     $presensiData = $this->PresensiModel->getPresensiData($userId, $year, $month);
+    //     return $presensiData;
+    // }
 }

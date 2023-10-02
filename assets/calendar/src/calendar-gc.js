@@ -25,9 +25,6 @@ var gcObject = {
     this.pickedDate = newDate;
     this.render();
   },
-
-
-
   setEvents(events) {
     this.options.events = events;
     this.render();
@@ -37,8 +34,7 @@ var gcObject = {
     this.options.onPrevMonth(this.pickedDate);
     this.eventAnimate = "prev";
     this.render();
-  },  
-
+  },
   nextMonth() {
     this.pickedDate = new Date(this.pickedDate.getFullYear(), this.pickedDate.getMonth(), 1);
     this.options.onNextMonth(this.pickedDate);
@@ -60,41 +56,41 @@ var gcObject = {
     pickedYear.appendTo(montYear);
     const prev = $(`<button type="button" class='prev'>${this.options.prevIcon}</button>`);
     prev.appendTo(head);
-    prev.on("click", (e) => {
-        this.prevMonth();
+    prev.on("click", function (e) {
+      gcObject.prevMonth();
     });
 
     const next = $(`<button type="button" class='next'>${this.options.nextIcon}</button>`);
     next.appendTo(head);
-    next.on("click", (e) => {
-        this.nextMonth();
+    next.on("click", function (e) {
+      gcObject.nextMonth();
     });
 
     const calendar = $('<table class="calendar"></table>');
     calendar.removeClass("slide-in-left slide-in-right slide-out-left slide-out-right");
     /// ANIMATION
     if (this.eventAnimate == "none") {
-        calendar.hide().addClass("slide-in-left").show();
+      calendar.hide().addClass("slide-in-left").show();
     } else if (this.eventAnimate == "prev") {
-        calendar
-            .hide()
-            .addClass("slide-out-right")
-            .show()
-            .delay(200)
-            .hide()
-            .removeClass("slide-out-right")
-            .addClass("slide-in-left")
-            .show();
+      calendar
+        .hide()
+        .addClass("slide-out-right")
+        .show()
+        .delay(200)
+        .hide()
+        .removeClass("slide-out-right")
+        .addClass("slide-in-left")
+        .show();
     } else {
-        calendar
-            .hide()
-            .addClass("slide-out-left")
-            .show()
-            .delay(200)
-            .hide()
-            .removeClass("slide-out-left")
-            .addClass("slide-in-right")
-            .show();
+      calendar
+        .hide()
+        .addClass("slide-out-left")
+        .show()
+        .delay(200)
+        .hide()
+        .removeClass("slide-out-left")
+        .addClass("slide-in-right")
+        .show();
     }
     calendar.appendTo(gcCalendar);
     const header = $("<thead></thead>");
@@ -103,65 +99,63 @@ var gcObject = {
     headerRow.appendTo(header);
     const dayLength = this.options.dayNames.length;
     for (let i = 0; i < dayLength; i++) {
-        var index = i + this.options.dayBegin;
-        if (index >= dayLength) {
-            index = index - dayLength;
-        }
-        const element = this.options.dayNames[index];
-        const headerCell = $('<th class="dayname">' + element + "</th>");
-        headerCell.appendTo(headerRow);
+      var index = i + gcObject.options.dayBegin;
+      if (index >= dayLength) {
+        index = index - dayLength;
+      }
+      const element = gcObject.options.dayNames[index];
+      const headerCell = $('<th class="dayname">' + element + "</th>");
+      headerCell.appendTo(headerRow);
     }
     var body = $("<tbody></tbody>");
     body.appendTo(calendar);
     const calendarData = this.getCalendarArray();
     const stackDate = new Date();
-    calendarData.forEach((e) => {
-        var row = $("<tr></tr>");
-        e.forEach((e) => {
-            //mau masukkan event bisa lewat sini
-            var cell = $('<td class="day"></td>');
-            cell.appendTo(row);
-            var btnCell = $(`<a type="button" class="btn-gc-cell"></a>`);
-            cell.append(btnCell);
-            btnCell.click((ev) => {
-                this.options.onclickDate(ev, e);
-            });
-            var day = $(`<span class="day-number">${e.date}</span>`);
-            cell.addClass(e.class);
-            day.appendTo(btnCell);
-
-            if (
-                stackDate.getFullYear() == e.datejs.getFullYear() &&
-                stackDate.getMonth() == e.datejs.getMonth() &&
-                stackDate.getDate() == e.datejs.getDate()
-            ) {
-                btnCell.addClass("today");
-            }
-
-            var dayStyle = "";
-            // Ambil status dari getStatus dan tambahkan ke sel kalender
-            const statusItem = this.getStatusItemForDate(e.datejs); // Mengambil status berdasarkan tanggal
-            if (statusItem) {
-                const statusDiv = $(`<div class="gc-event">${statusItem.status}</div>`);
-                dayStyle = "color:" + (statusItem.dateColor || "inherit");
-                cell.append(statusDiv);
-            }
-
-            day.attr("style", dayStyle);
+    calendarData.forEach(function (e) {
+      var row = $("<tr></tr>");
+      e.forEach(function (e) {
+        //mau masukkan event bisa lewat sini
+        var cell = $('<td class="day"></td>');
+        cell.appendTo(row);
+        var btnCell = $(`<a type="button" class="btn-gc-cell"></a>`);
+        cell.append(btnCell);
+        btnCell.click(function (ev) {
+          gcObject.options.onclickDate(ev, e);
         });
-        row.appendTo(body);
+        var day = $(`<span class="day-number">${e.date}</span>`);
+        cell.addClass(e.class);
+        day.appendTo(btnCell);
+
+        if (
+          stackDate.getFullYear() == e.datejs.getFullYear() &&
+          stackDate.getMonth() == e.datejs.getMonth() &&
+          stackDate.getDate() == e.datejs.getDate()
+        ) {
+          btnCell.addClass("today");
+        }
+
+        var dayStyle = "";
+        gcObject.options.events.forEach(function (evt) {
+          if (
+            evt.date.getFullYear() == e.datejs.getFullYear() &&
+            evt.date.getMonth() == e.datejs.getMonth() &&
+            evt.date.getDate() == e.datejs.getDate()
+          ) {
+            cell.addClass("event");
+            var event = $(`<div class="gc-event ${evt.className}">${evt.eventName}</div>`);
+            dayStyle = "color:" + (evt.dateColor || "inherit");
+            event.on("click", function (e) {
+              evt.onclick(e, evt);
+            });
+            cell.append(event);
+          }
+        });
+
+        day.attr("style", dayStyle);
+      });
+      row.appendTo(body);
     });
-}
-,// Tambahkan fungsi getStatusItemForDate untuk mendapatkan status berdasarkan tanggal
-getStatusItemForDate(date) {
-  const status = getStatus($userId, $bulanIni); // Panggil fungsi getStatus Anda
-  for (const statusItem of status) {
-      if (statusItem.tanggal == indo_date(date)) {
-          return statusItem;
-      }
-  }
-  return null;
-},
+  },
   getCalendarArray() {
     const dayLength = 7;
     var firstDay = new Date(this.pickedDate.getFullYear(), this.pickedDate.getMonth(), 1).getDay();
@@ -252,7 +246,15 @@ getStatusItemForDate(date) {
     ];
     gcObject.options.onPrevMonth = options.onPrevMonth || function (e) {};
     gcObject.options.onNextMonth = options.onNextMonth || function (e) {};
-    gcObject.options.events = options.events || [];
+    gcObject.options.events = options.events || [
+      {
+        date: null,
+        eventName: null,
+        className: null,
+        onclick: function (ev, data) {},
+        dateColor: "#38385c",
+      },
+    ];
     gcObject.options.onclickDate = options.onclickDate || function (e, data) {};
     gcObject.options.nextIcon = options.nextIcon || "&gt;";
     gcObject.options.prevIcon = options.prevIcon || "&lt;";

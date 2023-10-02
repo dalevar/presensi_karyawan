@@ -13,6 +13,16 @@ class PresensiModel extends Eloquent
         'created_on'
     ];
 
+    public function getPresensiData($userId, $tahun, $bulan)
+    {
+        $presensi = $this->where('user_id', $userId)
+            ->whereMonth('created_on', $bulan)
+            ->whereYear('created_on', $tahun)
+            ->get();
+
+        return $presensi;
+    }
+
 
     public function getPresensiBulanIni($userId, $tanggal)
     {

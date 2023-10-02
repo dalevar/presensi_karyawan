@@ -33,7 +33,48 @@
 	<script src="<?= base_url('assets/fullcalendar/packages/core/index.global.js') ?>"></script>
 	<script src="<?= base_url('assets/fullcalendar/packages/core/locales/id.global.min.js') ?>"></script>
 	<script src="<?= base_url('assets/fullcalendar/packages/daygrid/index.global.min.js') ?>"></script> -->
+	<!-- <style>
+		.circle {
+			background: red;
+			border: 1px solid blue;
+			padding: 10px;
+			border-radius: 50%;
+		}
 
+		td {
+			padding: 20px;
+			border: 1px solid grey;
+		}
+
+
+		.sunday {
+			color: red;
+		}
+
+		.with-circle {
+			position: relative;
+		}
+
+		.with-circle::before {
+			content: "\2022";
+			/* Unicode character for a bullet */
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background-color: #ffcc00;
+			/* Yellow background color */
+			width: 18px;
+			height: 18px;
+			border-radius: 50%;
+			text-align: center;
+			line-height: 18px;
+			color: #fff;
+			/* Text color inside the circle */
+			font-weight: bold;
+			cursor: pointer;
+		}
+	</style> -->
 </head>
 
 <body class=" color-light ">
