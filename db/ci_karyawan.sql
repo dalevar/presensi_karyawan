@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 23, 2023 at 08:59 AM
+-- Generation Time: Oct 03, 2023 at 08:38 AM
 -- Server version: 8.0.30
 -- PHP Version: 7.4.33
 
@@ -29,16 +29,17 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `jabatan` (
   `id` int NOT NULL,
-  `jabatan` varchar(128) NOT NULL
+  `jabatan` varchar(128) NOT NULL,
+  `alokasi_cuti` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `jabatan`
 --
 
-INSERT INTO `jabatan` (`id`, `jabatan`) VALUES
-(9, 'Manager'),
-(36, 'asd');
+INSERT INTO `jabatan` (`id`, `jabatan`, `alokasi_cuti`) VALUES
+(9, 'Manager', 4),
+(36, 'test', 2);
 
 -- --------------------------------------------------------
 
@@ -69,6 +70,27 @@ INSERT INTO `karyawan` (`id`, `user_id`, `email`, `nama`, `tanggal_masuk`, `tipe
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `konfig`
+--
+
+CREATE TABLE `konfig` (
+  `id` int NOT NULL,
+  `nama` varchar(128) NOT NULL,
+  `nilai` varchar(128) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `konfig`
+--
+
+INSERT INTO `konfig` (`id`, `nama`, `nilai`) VALUES
+(1, 'jam_masuk', '08:00'),
+(2, 'jam_berakhir', '17:00'),
+(3, 'wfh', '15 menit');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `presensi`
 --
 
@@ -87,7 +109,6 @@ CREATE TABLE `presensi` (
 INSERT INTO `presensi` (`id`, `user_id`, `tanggal`, `created_by`, `created_on`) VALUES
 (11, 31, '2023-09-15 08:00:00', 11, '2023-09-15 07:58:00'),
 (13, 31, '2023-09-16 08:00:00', 11, '2023-09-16 07:50:00'),
-(14, 31, '2023-09-17 08:00:00', 11, '2023-09-17 07:55:00'),
 (17, 31, '2023-09-18 08:00:00', 11, '2023-09-18 08:02:00'),
 (18, 31, '2023-09-19 08:00:00', 11, '2023-09-19 08:05:00'),
 (19, 31, '2023-09-20 08:00:00', 11, '2023-09-20 08:01:57'),
@@ -95,9 +116,22 @@ INSERT INTO `presensi` (`id`, `user_id`, `tanggal`, `created_by`, `created_on`) 
 (21, 31, '2023-09-22 08:00:00', 11, '2023-09-22 07:59:03'),
 (24, 31, '2023-08-01 08:00:00', 11, '2023-08-01 08:02:00'),
 (25, 31, '2023-08-02 08:00:00', 11, '2023-08-02 08:04:30'),
-(26, 31, '2022-09-22 08:00:00', 11, '2022-09-14 08:00:00'),
-(27, 31, '2022-09-21 08:00:00', 11, '2022-09-22 08:00:00'),
-(30, 31, '2023-09-23 08:00:00', 11, '2023-09-23 08:16:58');
+(26, 31, '2022-09-22 08:00:00', 11, '2022-09-22 08:00:00'),
+(27, 31, '2022-09-21 08:00:00', 11, '2022-09-21 08:00:00'),
+(30, 31, '2023-09-22 08:00:00', 11, '2023-09-22 07:16:58'),
+(32, 31, '2023-09-23 08:00:00', 11, '2023-09-23 08:05:00'),
+(34, 31, '2023-09-25 08:00:00', 11, '2023-09-25 08:08:32'),
+(35, 31, '2023-09-26 08:00:00', 11, '2023-09-26 08:00:00'),
+(38, 31, '2023-09-27 08:00:00', 31, '2023-09-27 07:58:07'),
+(39, 31, '2023-09-29 08:00:00', 31, '2023-09-29 08:11:31'),
+(40, 31, '2023-10-02 08:00:00', 31, '2023-10-02 08:23:10'),
+(42, 31, '2023-10-17 08:00:00', 11, '2023-10-17 08:00:00'),
+(43, 31, '2023-10-18 08:00:00', 11, '2023-10-18 08:00:00'),
+(44, 31, '2023-10-19 08:00:00', 11, '2023-10-19 08:00:00'),
+(45, 31, '2023-10-20 08:00:00', 11, '2023-10-20 08:00:00'),
+(46, 31, '2023-10-20 08:00:00', 11, '2023-10-20 08:00:00'),
+(47, 31, '2023-10-23 08:00:00', 11, '2023-10-23 08:00:00'),
+(48, 31, '2023-10-03 08:00:00', 31, '2023-10-03 15:17:51');
 
 -- --------------------------------------------------------
 
@@ -121,7 +155,13 @@ INSERT INTO `qrcode_presensi` (`id`, `code`, `created_on`) VALUES
 (4, 'TCO29Q', '2023-09-20 00:00:00'),
 (8, 'DTAXRL', '2023-09-21 00:00:00'),
 (9, '3NIX1V', '2023-09-22 00:00:00'),
-(10, 'LSWULM', '2023-09-23 00:00:00');
+(10, 'LSWULM', '2023-09-23 00:00:00'),
+(11, '0SN2NP', '2023-09-25 00:00:00'),
+(12, '8I1EFU', '2023-09-26 00:00:00'),
+(13, 'E58ZNK', '2023-09-27 00:00:00'),
+(14, '9SNT4M', '2023-09-29 00:00:00'),
+(15, 'O0WIUA', '2023-10-02 00:00:00'),
+(16, 'WHGUEZ', '2023-10-03 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -166,9 +206,9 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `login_oauth_uid`, `login_access`, `first_name`, `last_name`, `email_address`, `profile_picture`, `created_at`, `updated_at`) VALUES
-(6, '116056833446412691740', 1, 'dale', 'admin', 'dalemaster77@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocKiL8RuKg7hDrJJfPwxFjEoUoscNmES8Gab5VqapMRV=s96-c', '2023-09-19 06:54:02', '2023-09-23 11:39:23'),
-(31, '100827754095854324927', 0, 'Dummy', 'Dale', 'dummyedale@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocJm_ToIa1VX049Vy7KY3dzhjEoFUFir5W4KoyLrFSf-=s96-c', '2023-09-20 02:27:35', '2023-09-23 14:58:37'),
-(32, '108168417186943125594', 0, 'DECROS', 'Ty', 'decros2324@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocLDzJv3XdUV4EIyWhR2XyHk1XLQiPXYA5k9FqhU82Do=s96-c', '2023-09-20 03:09:27', '2023-09-23 14:58:13');
+(6, '116056833446412691740', 1, 'dale', 'admin', 'dalemaster77@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocKiL8RuKg7hDrJJfPwxFjEoUoscNmES8Gab5VqapMRV=s96-c', '2023-09-19 06:54:02', '2023-10-03 15:05:15'),
+(31, '100827754095854324927', 0, 'Dummy', 'Dale', 'dummyedale@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocJm_ToIa1VX049Vy7KY3dzhjEoFUFir5W4KoyLrFSf-=s96-c', '2023-09-20 02:27:35', '2023-10-03 15:07:05'),
+(32, '108168417186943125594', 0, 'DECROS', 'Ty', 'decros2324@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocLDzJv3XdUV4EIyWhR2XyHk1XLQiPXYA5k9FqhU82Do=s96-c', '2023-09-20 03:09:27', '2023-10-02 08:56:03');
 
 --
 -- Indexes for dumped tables
@@ -184,6 +224,12 @@ ALTER TABLE `jabatan`
 -- Indexes for table `karyawan`
 --
 ALTER TABLE `karyawan`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `konfig`
+--
+ALTER TABLE `konfig`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -228,16 +274,22 @@ ALTER TABLE `karyawan`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
+-- AUTO_INCREMENT for table `konfig`
+--
+ALTER TABLE `konfig`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `presensi`
 --
 ALTER TABLE `presensi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `qrcode_presensi`
 --
 ALTER TABLE `qrcode_presensi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `tipe`

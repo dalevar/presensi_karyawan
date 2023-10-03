@@ -13,7 +13,7 @@
                                     <div class="col-md-12">
                                         <div class="d-flex flex-wrap justift-content-between">
                                             <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="<?= base_url('dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
+                                                <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
                                                 <li class="breadcrumb-item active" aria-current="page"><?= $title; ?></li>
                                             </ol>
                                         </div>
@@ -24,12 +24,9 @@
 
                             <?php if ($this->session->flashdata('berhasil')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('berhasil') ?>" data-type="success"></div>
-
                             <?php elseif ($this->session->flashdata('gagal')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('gagal') ?>" data-type="error"></div>
-
                             <?php endif; ?>
-
 
                             <table id="datatable" class="table data-table table-striped table-bordered" style="z-index: -1; overflow: auto;">
                                 <thead>

@@ -6,7 +6,7 @@ class JabatanModel extends Eloquent
 {
     protected $table = 'jabatan';
     protected $primaryKey = 'id';
-    protected $fillable = ['jabatan'];
+    protected $fillable = ['jabatan', 'alokasi_cuti'];
 
     public function karyawan()
     {

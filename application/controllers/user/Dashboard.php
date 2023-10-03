@@ -132,10 +132,6 @@ class Dashboard extends CI_Controller
             $data['existAbsen'] = $existAbsen;
             $data['tanggalAbsen'] = $tanggalAbsen;
 
-            // $year = $this->input->get('year') ? $this->input->get('year') : date('Y');
-            // $month = $this->input->get('month') ? $this->input->get('month') : date('n');
-            // $presensiData = $this->getPresensiData($userId, $year, $month);
-            // $data['presensiData'] = $presensiData;
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);
             $this->load->view('User/dashboard', $data);
@@ -156,31 +152,4 @@ class Dashboard extends CI_Controller
         // Kembalikan data presensi dalam format yang sesuai (misalnya, dalam bentuk HTML)
         echo generatePresensiHTML($presensiData);
     }
-
-
-    // public function getPresensiData()
-    // {
-    //     $year = $this->input->get('year');
-    //     $month = $this->input->get('month');
-    //     $userData = $this->session->userdata('user_data');
-    //     $userId = $userData['id'];
-
-    //     // Panggil model atau metode lainnya untuk mengambil data presensi
-    //     $presensiData = $this->PresensiModel->getPresensiData($userId, $year, $month);
-
-
-    //     // Kembalikan data presensi dalam format JSON
-    //     header('Content-Type: application/json');
-    //     echo json_encode($presensiData);
-    // }
-
-
-    // private function getPresensiData($userId, $year, $month)
-    // {
-    //     // Gantilah ini dengan logika Anda untuk mengambil data presensi dari database
-    //     // Gunakan model atau metode yang sesuai dengan framework CodeIgniter
-    //     $this->load->model('PresensiModel'); // Gantilah dengan nama model Anda
-    //     $presensiData = $this->PresensiModel->getPresensiData($userId, $year, $month);
-    //     return $presensiData;
-    // }
 }

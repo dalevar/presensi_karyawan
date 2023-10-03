@@ -107,6 +107,7 @@ class Tipe_jabatan extends CI_Controller
             $data = array(
                 'id' => $this->input->post('id'),
                 'jabatan' => $this->input->post('jabatan'),
+                'alokasi_cuti' => $this->input->post('cuti'),
             );
 
             // Panggil method updateKaryawan dari model

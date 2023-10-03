@@ -258,6 +258,7 @@ function generatePresensiHTML($presensiData)
 
 
 
+
 function generateCalendar($userId, $year, $month, $tanggal)
 {
     $ci = &get_instance();
@@ -267,16 +268,18 @@ function generateCalendar($userId, $year, $month, $tanggal)
     $firstDay = mktime(0, 0, 0, $month, 1, $year);
     // Get angka hari di bulanIni
     $numDays = date('t', $firstDay);
+
     // Get nama bulan
     $monthName = date('F', $firstDay);
     $indonesianMonthName = getIndonesianMonth($monthName);
+
     //Hari Libur Nasional
     $dataLibur = getHariLibur();
 
     //Data Presensi
     $presensiModel = new PresensiModel();
     // mengambil data presensi dibulan ini
-    $presensi = $presensiModel->getPresensiBulanIni($userId, $tanggal);
+    $presensiList = $presensiModel->getPresensiBulanIni($userId, $tanggal);
 
     // Create hari indonesia
     $dayNames = [
@@ -334,9 +337,25 @@ function generateCalendar($userId, $year, $month, $tanggal)
 
     // Create the first row and fill in the empty cells
     echo "<tr>";
+
+
+
     for ($i = 1; $i < date('N', $firstDay); $i++) {
         echo "<td></td>";
     }
+
+
+
+
+    $arrayPresensi = array(
+        'status_kehadiran' => array(
+            'terlambat' => array(3, 4, 5, 6),
+            'tidak_hadir' => array(2, 8, 10)
+        ),
+    );
+
+
+    $arrayPresensi2 = array(2, 4, 5);
 
     // Fill in the days of the month
     for ($day = 1; $day <= $numDays; $day++) {
@@ -355,24 +374,27 @@ function generateCalendar($userId, $year, $month, $tanggal)
         $tanggalLibur = date('Y-m-d', strtotime($currentDate));
 
 
-        foreach ($presensi as $absen) {
-            if ($absen->tanggal == $tanggalPresensi) {
-                if ($absen->created_on <= $tanggalPresensi) {
+        foreach ($presensiList as $presensi) {
+            if ($presensi->tanggal == $tanggalPresensi) {
+                // dd($presensi);
+                if ($presensi->created_on <= $tanggalPresensi) {
                     $dayClass = 'text-green';
                     $icon = 'ri-checkbox-circle-line';
-                    $circle .= ' with-circle-hadir';
+                    // $circle .= ' with-circle-hadir';
                     $tooltip = 'Ini adalah tanggal 20!';
                 } else {
-                    $dayClass .= 'text-warning';
+                    $dayClass = 'text-warning';
                     $icon = 'ri-error-warning-line';
-                    $circle .= ' with-circle-terlambat';
+                    // $circle .= ' with-circle-terlambat';
                     $tooltip = 'Ini adalah tanggal 20!';
                 }
                 break;
-            } else {
             }
+            // $dayClass = 'text-secondary';
+            // $icon = 'ri-checkbox-circle-line';
+            // $circle .= ' with-circle-hadir';
+            // $tooltip = 'Ini adalah tanggal 20!';
         }
-
 
         // Mendapatkan status hari libur
         foreach ($dataLibur as $libur) {
@@ -385,7 +407,7 @@ function generateCalendar($userId, $year, $month, $tanggal)
                 $tooltip = '';
             }
         }
-
+        // dd($presensi);
         echo "<td class='day current-month' style='Padding: 20px;' id='tanggal'>
         <a type='button' class='btn-gc-cell'><span class='day-number $dayClass'>$day <i class='$icon'></i></span></a>";
 
@@ -399,7 +421,6 @@ function generateCalendar($userId, $year, $month, $tanggal)
         }
 
         // echo "<td class='$dayClass $circle' title='$tooltip'>$day</td>";
-
 
         if (date('N', mktime(0, 0, 0, $month, $day, $year)) == 7) {
             echo "</tr>";
@@ -528,3 +549,46 @@ function qrcode($data, $filename)
     QRcode::png($url, FCPATH . "./uploads/qrcode/$filename.png", QR_ECLEVEL_H, 10);
     return $url;
 }
+
+// function generate_calendar($year, $month, $presences = array())
+// {
+//     $calendar = '';
+
+//     // Mendapatkan jumlah hari dalam bulan ini
+//     $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+//     // Mendapatkan tanggal awal bulan
+//     $first_day = mktime(0, 0, 0, $month, 1, $year);
+
+//     // Menghitung hari pertama dalam minggu (0: Minggu, 1: Senin, dst.)
+//     $day_of_week = date('w', $first_day);
+
+//     // Mendefinisikan nama-nama hari dalam bahasa Inggris
+//     $days = array('Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu');
+
+//     // Membuat header kalendar
+//     $calendar .= '<table border="1">';
+//     $calendar .= '<tr>';
+//     foreach ($days as $day) {
+//         $calendar .= '<th>' . $day . '</th>';
+//     }
+//     $calendar .= '</tr>';
+
+//     // Membuat sel-sel kalendar dengan tanggal
+//     $calendar .= '<tr>';
+//     for ($i = 0; $i < $day_of_week; $i++) {
+//         $calendar .= '<td></td>';
+//     }
+//     for ($day = 1; $day <= $days_in_month; $day++) {
+//         $presences_count = isset($presences[$day]) ? count($presences[$day]) : 0;
+//         $calendar .= '<td>' . $day . '<br>Presensi: ' . $presences_count . '</td>';
+//         if (($day + $day_of_week) % 7 == 0) {
+//             $calendar .= '</tr><tr>';
+//         }
+//     }
+//     $calendar .= '</tr>';
+
+//     $calendar .= '</table>';
+
+//     return $calendar;
+// }

@@ -171,26 +171,17 @@
                             <div class="card-body " style="position: relative;">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center pr-3">
                                     <h5 class="card-title">Presensi Bulan ini</h5>
-
                                 </div>
 
                                 <div class="gc-calendar">
-
                                     <?php
-
                                     $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
                                     $month = isset($_GET['month']) ? $_GET['month'] : date('n');
                                     $userId = $karyawan->user_id;
                                     $tanggal = date('Y-m-d');
-
-                                    generateCalendar($userId, $year, $month, $tanggal);
-
-                                    ?>
-
+                                    generateCalendar($userId, $year, $month, $tanggal); ?>
                                 </div>
-
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -201,39 +192,40 @@
 </div>
 </div>
 
-<script>
-    function updateCalendar() {
-        var selectedMonth = document.getElementById('month').value;
-        var selectedYear = document.getElementById('year').value;
+// <script>
+    //     function updateCalendar() {
+    //         var selectedMonth = document.getElementById('month').value;
+    //         var selectedYear = document.getElementById('year').value;
 
-        // Lakukan panggilan AJAX ke server untuk mendapatkan data presensi baru berdasarkan bulan dan tahun yang dipilih.
-        $.ajax({
-            type: 'POST',
-            url: '<?= base_url('user/dashboard/getPresensiData') ?>', // Ganti dengan URL yang sesuai
-            data: {
-                userId: <?php echo $userId; ?>,
-                year: selectedYear,
-                month: selectedMonth
-            },
-            success: function(data) {
-                // Di sini Anda dapat memperbarui kalender dengan data presensi baru.
+    //         // Lakukan panggilan AJAX ke server untuk mendapatkan data presensi baru berdasarkan bulan dan tahun yang dipilih.
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: '<?= base_url('user/dashboard/getPresensiData') ?>', // Ganti dengan URL yang sesuai
+    //             data: {
+    //                 userId: <?php echo $userId; ?>,
+    //                 year: selectedYear,
+    //                 month: selectedMonth
+    //             },
+    //             success: function(data) {
+    //                 // Di sini Anda dapat memperbarui kalender dengan data presensi baru.
 
-                // Ubah tanggal berdasarkan bulan dan tahun yang dipilih
-                var selectedMonth = document.getElementById('month').value;
-                var selectedYear = document.getElementById('year').value;
+    //                 // Ubah tanggal berdasarkan bulan dan tahun yang dipilih
+    //                 var selectedMonth = document.getElementById('month').value;
+    //                 var selectedYear = document.getElementById('year').value;
 
-                // Misalnya, jika Anda ingin memperbarui tanggal dengan tanggal 1 bulan dan tahun yang dipilih:
-                var newDate = selectedYear + '-' + selectedMonth + '-01';
+    //                 // Misalnya, jika Anda ingin memperbarui tanggal dengan tanggal 1 bulan dan tahun yang dipilih:
+    //                 var newDate = selectedYear + '-' + selectedMonth + '-01';
 
-                // Mengganti tanggal dalam kalender dengan tanggal yang baru
-                $('#tanggal').text(newDate);
+    //                 // Mengganti tanggal dalam kalender dengan tanggal yang baru
+    //                 $('#tanggal').text(newDate);
 
-                // Memperbarui isi kalender dengan data presensi baru
-                $('#presensi-data').html(data);
-            }
+    //                 // Memperbarui isi kalender dengan data presensi baru
+    //                 $('#presensi-data').html(data);
+    //             }
 
-        });
-    }
+    //         });
+    //     }
+    // 
 </script>
 
 <script>

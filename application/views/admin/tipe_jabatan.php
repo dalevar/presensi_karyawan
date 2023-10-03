@@ -233,6 +233,11 @@ foreach ($jabatan as $jb) : $no++; ?>
                             <input type="text" class="form-control" name="jabatan" value="<?= $jb->jabatan ?>">
                             <?= form_error('tipe', '<small class="text-danger">', '</small>') ?>
                         </div>
+                        <div class="form-group">
+                            <label for="">Alokasi Cuti</label>
+                            <input type="number" min="1" class="form-control" name="cuti" value="<?= $jb->alokasi_cuti ?>">
+                            <?= form_error('tipe', '<small class="text-danger">', '</small>') ?>
+                        </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
