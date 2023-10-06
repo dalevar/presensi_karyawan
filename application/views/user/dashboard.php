@@ -102,7 +102,7 @@
                                         <h4 class="font-weight-bold text-center mb-2">Scan Presensi</h4>
                                     </div>
                                     <!-- Jika belum absen, tampilkan tautan QR Code -->
-                                    <a href="<?= site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $filename) ?>">Tautan QR Code</a>
+                                    <a href="<?= site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $karyawan->id) ?>">Tautan QR Code</a>
 
                                     <img src="<?= base_url('uploads/qrcode/' . $filename . '.png') ?>" alt="" class="d-flex mx-auto w-50">
                                     <div class="form-group mb-0 d-flex flex-row justify-content-center mt-2">
@@ -171,6 +171,7 @@
                             <div class="card-body " style="position: relative;">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center pr-3">
                                     <h5 class="card-title">Presensi Bulan ini</h5>
+
                                 </div>
 
                                 <div class="gc-calendar">
@@ -178,9 +179,11 @@
                                     $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
                                     $month = isset($_GET['month']) ? $_GET['month'] : date('n');
                                     $userId = $karyawan->user_id;
-                                    $tanggal = date('Y-m-d');
-                                    generateCalendar($userId, $year, $month, $tanggal); ?>
+                                    // $tanggal = date("$year-$month");
+                                    generateCalendar($userId, $year, $month); ?>
+
                                 </div>
+
                             </div>
                         </div>
                     </div>

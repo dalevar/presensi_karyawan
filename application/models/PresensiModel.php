@@ -13,6 +13,18 @@ class PresensiModel extends Eloquent
         'created_on'
     ];
 
+
+
+    public function getPresensiKaryawan($tahun, $bulan)
+    {
+        $presensi = PresensiModel::with('karyawan')
+            ->whereMonth('created_on', $bulan)
+            ->whereYear('created_on', $tahun)
+            ->get();
+        // dd($presensi);
+        return $presensi;
+    }
+
     public function getPresensiData($userId, $tahun, $bulan)
     {
         $presensi = $this->where('user_id', $userId)
@@ -22,6 +34,94 @@ class PresensiModel extends Eloquent
 
         return $presensi;
     }
+
+    public function getPresensiArray()
+    {
+        $presensiData = $this->get(); // Mengambil semua data
+
+        if ($presensiData->count() > 0) {
+            return $presensiData->toArray(); // Mengembalikan data dalam bentuk array asosiatif
+        } else {
+            return array(); // Mengembalikan array kosong jika tidak ada data
+        }
+    }
+
+    public function getAllUserIds()
+    {
+        // $userIds = PresensiModel::distinct()->select('created_by')->get()->toArray();
+        // return $userIds;
+
+        return $this->distinct()->pluck('created_by')->toArray();
+    }
+
+
+    public function getPresensiHariIni($tanggal)
+    {
+        $hariIni = date('Y-m-d H:i:s', strtotime($tanggal . ' 08:00:00'));
+
+        $presensi = $this->where('tanggal', $hariIni)
+            ->get();
+        return $presensi;
+    }
+
+    public function hitungTerlambatHariIni($tanggal)
+    {
+        $hariIni = date('Y-m-d H:i:s', strtotime($tanggal . ' 08:00:00'));
+
+        $terlambat = $this->where('tanggal', $hariIni)
+            ->where('created_on', '>', $hariIni)
+            ->count();
+
+        return $terlambat;
+    }
+
+    // public function hitungTidakHadir($tanggal)
+    // {
+    //     $presensi = $this->getPresensiHariIni($tanggal);
+
+    //     if ($presensi->isEmpty()) {
+    //         // Jika tidak ada data presensi hari ini, ambil semua data sesuai tanggal
+    //         $semuaPresensi = $this->where('tanggal', $tanggal)->get();
+    //         $jumlahPresensi = $semuaPresensi->count();
+    //     } else {
+    //         $jumlahPresensi = $presensi->count();
+    //     }
+
+    //     // Hitung jumlah ketidak hadiran
+    //     $jumlahTidakHadir = $jumlahPresensi > 0 ? 1 : 0;
+
+    //     return $jumlahTidakHadir;
+    // }
+
+    public function hitungTidakHadir($tanggal)
+    {
+        // Dapatkan semua user_id yang ada di tabel presensi
+        $allUserIds = $this->getAllUserIds();
+        $hariIni = date('Y-m-d H:i:s', strtotime($tanggal . ' 08:00:00'));
+
+        // Inisialisasi jumlah ketidak hadiran
+        $jumlahTidakHadir = 0;
+
+        // Iterasi melalui semua user_id
+        foreach ($allUserIds as $userId) {
+            // Dapatkan data presensi hari ini untuk user_id tertentu
+            $presensiHariIni = $this->where('tanggal', $hariIni)->where('created_by', $userId)->get();
+            // dd($presensiHariIni);
+            // Jika tidak ada presensi hari ini untuk user_id tertentu, tingkatkan jumlah ketidak hadiran
+            if ($presensiHariIni->isEmpty()) {
+                $jumlahTidakHadir++;
+            }
+        }
+
+        // Jika semua karyawan telah melakukan presensi, atur pesan kehadiran lengkap
+        if ($jumlahTidakHadir === 0) {
+            return 'Kehadiran Lengkap';
+        }
+
+        return $jumlahTidakHadir;
+    }
+
+
 
 
     public function getPresensiBulanIni($userId, $tanggal)
@@ -148,6 +248,8 @@ class PresensiModel extends Eloquent
         return $selisihTotalMenit;
     }
 
+
+
     public function getPresensiByUserTanggal($user_id, $tanggal)
     {
         return $this->where('user_id', $user_id)
@@ -162,9 +264,10 @@ class PresensiModel extends Eloquent
             ->get()
             ->toArray();
     }
+
     public function karyawan()
     {
-        return $this->belongsTo('KaryawanModel', 'created_by', 'id_karyawan');
+        return $this->belongsTo('KaryawanModel', 'created_by', 'id');
     }
 
     public function getPresensiByTanggal($tanggal)

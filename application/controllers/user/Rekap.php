@@ -55,10 +55,6 @@ class Rekap extends CI_Controller
                 echo "Karyawan tidak ditemukan.";
             }
 
-            // Hitungan Status Terlambat
-            // $statusPresensi = hitungStatusPresensi($karyawan->id);
-            // $data['status_presensi'] = $statusPresensi;
-
             // Mendapatkan tanggal saat ini
             $tanggal = date('Y-m-d');
             $tanggalAbsen = date('Y-m-d 08:00:00');
@@ -74,46 +70,31 @@ class Rekap extends CI_Controller
             $tahun = date('Y', strtotime($tanggal));
 
             $presensi = new PresensiModel();
-            //per Bulan
-            $hitung = $presensi->hitungTidakHadirBulanIni($userId, $tanggal, $bulanIni, $tahun);
-            $terlambat = $presensi->hitungTerlambatBulanIni($userId, $tanggal, $bulanIni, $tahun);
-            //per Tahun
-            $hitungPerTahun = $presensi->hitungTidakHadirTahunIni($userId, $tahun);
-            $terlambatPerTahun = $presensi->hitungTerlambatTahunIni($userId, $tahun);
-
-            $data['hitungBulanIni'] = $hitung;
-            $data['hitungTahunIni'] = $hitungPerTahun;
-
-            $data['terlambatBulanIni'] = $terlambat;
-            $data['terlambatTahunIni'] = $terlambatPerTahun;
-
-            // // data Hari Libur dari API
-            // $dataHariLibur = getHariLibur();
-            // $data['dataHariLibur'] = $dataHariLibur;
 
             //Tanggal
             $tanggalBulanIni = getTanggal();
             $data['getTanggal'] = $tanggalBulanIni;
 
-            // $month = date('n');
-            // $year = date('Y');
-            // $calendar = generateCalendar($userId, $year, $month, $bulanIni);
+            $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
+            $month = isset($_GET['month']) ? $_GET['month'] : date('n');
+            $firstDay = mktime(0, 0, 0, $month, 1, $year);
+            $monthName = date('F', $firstDay);
+            $data['monthName'] = getIndonesianMonth($monthName);
+            // $dataPresensi = $presensiModel->getPresensiKaryawan($year, $month);
+            // // dd($dataPresensi);
+            // $data['presensi'] = $dataPresensi;
 
-            // $data['calendar'] = $calendar;
-            // var_dump($data['calendar']);
-            // die;
+            $data['year'] = $year;
+            $data['month'] = $month;
+            $data['tanggal'] = generateTanggalKerja($year, $month);
 
-            //Status
-            $status = getStatus($userId, $tanggal);
-            // var_dump($status);
-            // die;
-            $data['status'] = $status;
 
-            $existAbsen = PresensiModel::where('user_id', $userId)
-                ->where('tanggal', $tanggalAbsen)
-                ->first();
-            $data['existAbsen'] = $existAbsen;
-            $data['tanggalAbsen'] = $tanggalAbsen;
+            // //Status
+            // $status = getStatus($userId, $tanggal);
+            // // var_dump($status);
+            // // die;
+            // $data['status'] = $status;
+
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);
             $this->load->view('User/rekap', $data);

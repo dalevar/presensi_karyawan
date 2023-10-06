@@ -148,29 +148,6 @@ function getNamaHari($tanggal)
     return $namaHariIndonesia[$namaHariEnglish];
 }
 
-
-// function getTanggalHari()
-// {
-//     $ci = &get_instance();
-
-//     // Mendapatkan bulan dan tahun saat ini
-//     $bulanIni = date('m');
-//     $tahunIni = date('Y');
-
-//     // Menghitung jumlah hari dalam bulan ini
-//     $jumlahHari = cal_days_in_month(CAL_GREGORIAN, $bulanIni, $tahunIni);
-
-//     // Menghasilkan daftar tanggal dalam bulan ini dengan format "Senin, 01"
-//     $tanggalBulanIni = array();
-//     for ($tanggal = 1; $tanggal <= $jumlahHari; $tanggal++) {
-//         // Format tanggal dengan format "Senin, 01" dalam bahasa Indonesia
-//         $tanggalFormatted = getHariIndonesia(date('N', strtotime("$tahunIni-$bulanIni-$tanggal"))) . ', ' . date('d', strtotime("$tahunIni-$bulanIni-$tanggal")) . date('S', strtotime("$tahunIni-$bulanIni-$tanggal"));
-//         $tanggalBulanIni[] = $tanggalFormatted;
-//     }
-
-//     return $tanggalBulanIni;
-// }
-
 //nama hari indonesia
 function getHariIndonesia($dayOfWeek)
 {
@@ -256,16 +233,35 @@ function generatePresensiHTML($presensiData)
     return $html;
 }
 
+function generateTanggalKerja($year, $month)
+{
+    $tanggalKerja = array();
+    $tanggalAwal = new DateTime("$year-$month-01");
+    $tanggalAkhir = new DateTime("$year-$month-" . date('t', strtotime("$year-$month-01")));
+
+    while ($tanggalAwal <= $tanggalAkhir) {
+        $dayOfWeek = $tanggalAwal->format('N'); // Mendapatkan hari dalam format 1 (Senin) hingga 7 (Minggu)
+
+        // Memeriksa apakah hari adalah hari kerja (Senin hingga Sabtu)
+        if ($dayOfWeek >= 1 && $dayOfWeek <= 6) {
+            $tanggalKerja[] = $tanggalAwal->format('Y-m-d');
+        }
+
+        $tanggalAwal->modify('+1 day');
+    }
+
+    return $tanggalKerja;
+}
 
 
-
-function generateCalendar($userId, $year, $month, $tanggal)
+function generateCalendar($userId, $year, $month)
 {
     $ci = &get_instance();
     $ci->load->model('PresensiModel');
 
     //get hari pertama
     $firstDay = mktime(0, 0, 0, $month, 1, $year);
+
     // Get angka hari di bulanIni
     $numDays = date('t', $firstDay);
 
@@ -278,8 +274,10 @@ function generateCalendar($userId, $year, $month, $tanggal)
 
     //Data Presensi
     $presensiModel = new PresensiModel();
-    // mengambil data presensi dibulan ini
-    $presensiList = $presensiModel->getPresensiBulanIni($userId, $tanggal);
+
+    // mengambil data presensi per tiap bulan/tahun
+    $presensiList = $presensiModel->getPresensiData($userId, $year, $month);
+
 
     // Create hari indonesia
     $dayNames = [
@@ -287,11 +285,13 @@ function generateCalendar($userId, $year, $month, $tanggal)
     ];
 
     // Create the table header
+
     echo "<div class='gc-calendar-header d-flex flex-wrap justify-content-between align-items-center pr-3'>";
     echo "<h4>$indonesianMonthName $year</h4>";
     // Bulan Dan Tahun Dropdown Select
     echo "<div class='form-group mb-0 d-flex flex-row'>";
     echo "<div class='col-md-6'>";
+    //Select Bulan
     echo "<select id='month' name='month' class='custom-select custom-select-sm form-control form-control-sm'>";
     for ($i = 1; $i <= 12; $i++) {
         $selected = ($i == $month) ? 'selected' : '';
@@ -300,11 +300,12 @@ function generateCalendar($userId, $year, $month, $tanggal)
     echo "</select>";
     echo "</div>";
     echo "<div class='col-md-6'>";
+    //Select Tahun
     echo "<select id='year' name='year' class='custom-select custom-select-sm form-control form-control-sm'>";
     $currentYear = date('Y');
-    $startYear = $currentYear - 5;
-    $endYear = $currentYear + 77;
-    for ($i = $startYear; $i <= $endYear; $i++) {
+    $startYear = $currentYear - 2;
+    // $endYear = $currentYear + 77;
+    for ($i = $startYear; $i <= $currentYear; $i++) {
         $selected = ($i == $year) ? 'selected' : '';
         echo "<option value='$i' $selected>$i</option>";
     }
@@ -322,9 +323,21 @@ function generateCalendar($userId, $year, $month, $tanggal)
             window.location.href = 'dashboard?year=' + selectedYear + '&month=' + selectedMonth;
         }
     </script>";
+
     echo "</div>";
 
+    echo "<div class='row d-flex flex-wrap justify-content-between align-items-center mx-auto mb-3'>";
+    echo "<ul class='nav nav-tabs' id='myTab-1' role='tablist'>";
+    echo "<li class='nav-item'>
+    <a class='nav-link active' id='home-tab' data-toggle='tab' href='#home' role='tab' aria-controls='home' aria-selected='true'>Presensi</a>
+ </li>";
+    echo "<li class='nav-item'>
+ <a class='nav-link' id='profile-tab' data-toggle='tab' href='#profile' role='tab' aria-controls='profile' aria-selected='false'>Keterangan</a>
+</li>";
+    echo "</div>";
 
+    echo "<div class='tab-content' id='myTabContent-2'>";
+    echo "<div class='tab-pane fade show active' id='home' role='tabpanel' aria-labelledby='home-tab'>";
     echo "<table class='calendar slide-in-left table-borderless table-responsive'>";
     echo "<div id='presensi-data'></div>";
     echo "<thead>";
@@ -338,63 +351,62 @@ function generateCalendar($userId, $year, $month, $tanggal)
     // Create the first row and fill in the empty cells
     echo "<tr>";
 
-
-
     for ($i = 1; $i < date('N', $firstDay); $i++) {
         echo "<td></td>";
     }
-
-
-
-
-    $arrayPresensi = array(
-        'status_kehadiran' => array(
-            'terlambat' => array(3, 4, 5, 6),
-            'tidak_hadir' => array(2, 8, 10)
-        ),
-    );
-
-
-    $arrayPresensi2 = array(2, 4, 5);
 
     // Fill in the days of the month
     for ($day = 1; $day <= $numDays; $day++) {
         // Determine if the day is a Sunday
         $isSunday = date('N', mktime(0, 0, 0, $month, $day, $year)) == 7;
 
+        $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
+        $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
+
         // Apply CSS class for Sundays
         $dayClass = $isSunday ? 'text-red' : '';
-        $circle = $isSunday ? 'sunday' : '';
+        // $circle = $isSunday ? 'sunday' : '';
         $icon = $isSunday ? 'sunday' : '';
 
 
         // Tanggal saat ini
         $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
-        $tanggalPresensi = date('Y-m-d 08:00:00', strtotime($currentDate));
+
+        // $jamPresensi = strtotime(date('H:i:s', strtotime('08:00:00')));
         $tanggalLibur = date('Y-m-d', strtotime($currentDate));
 
-
         foreach ($presensiList as $presensi) {
-            if ($presensi->tanggal == $tanggalPresensi) {
-                // dd($presensi);
-                if ($presensi->created_on <= $tanggalPresensi) {
+            $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+            $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+            $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+
+            if ($isWeekday && $tanggalPresensi == $currentDate) {
+                // Presensi ditemukan untuk tanggal ini
+                $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+
+                // jam perbandingan dengan waktu presensinya
+                $jamPresensi = strtotime('08:00:00');
+                if ($waktuPresensi <= $jamPresensi) {
+                    // Presensi tepat waktu
                     $dayClass = 'text-green';
                     $icon = 'ri-checkbox-circle-line';
-                    // $circle .= ' with-circle-hadir';
-                    $tooltip = 'Ini adalah tanggal 20!';
+                    $tooltip = 'Presensi tepat waktu';
                 } else {
+                    // Presensi terlambat
                     $dayClass = 'text-warning';
                     $icon = 'ri-error-warning-line';
-                    // $circle .= ' with-circle-terlambat';
-                    $tooltip = 'Ini adalah tanggal 20!';
+                    $tooltip = 'Presensi terlambat';
                 }
+                // Keluar dari loop setelah menemukan presensi yang sesuai
                 break;
             }
-            // $dayClass = 'text-secondary';
-            // $icon = 'ri-checkbox-circle-line';
-            // $circle .= ' with-circle-hadir';
-            // $tooltip = 'Ini adalah tanggal 20!';
+            if ($isWeekday && $presensiCreated  >= $currentDate) {
+                $dayClass = 'text-secondary';
+                $icon = 'ri-close-circle-line';
+                $tooltip = 'Presensi Tidak Hadir';
+            }
         }
+
 
         // Mendapatkan status hari libur
         foreach ($dataLibur as $libur) {
@@ -409,7 +421,7 @@ function generateCalendar($userId, $year, $month, $tanggal)
         }
         // dd($presensi);
         echo "<td class='day current-month' style='Padding: 20px;' id='tanggal'>
-        <a type='button' class='btn-gc-cell'><span class='day-number $dayClass'>$day <i class='$icon'></i></span></a>";
+        <a type='button' class='btn-gc-cell' ><span class='day-number $dayClass'>$day <i class='$icon'></i></span></a>";
 
         if ($isSunday) {
             echo "<div class='gc-event badge bg-danger mt-1'>Minggu Libur</div>";
@@ -417,6 +429,7 @@ function generateCalendar($userId, $year, $month, $tanggal)
             echo "<div class='gc-event badge bg-danger mt-1 text-left' data-toggle='tooltip' data-placement='bottom' title='$tooltip'>Libur : <div class='text-truncate' style='width: 60px' >{$libur->holiday_name}</div>
             </div>";
         } else {
+
             echo "</td>";
         }
 
@@ -432,9 +445,22 @@ function generateCalendar($userId, $year, $month, $tanggal)
 
     echo "</tr>";
     echo "</table>";
+    echo "</div>";
+    echo "<div class='tab-pane fade' id='profile' role='tabpanel' aria-labelledby='profile-tab'>";
+    echo "<table id='datatable' class='table data-table table-striped table-bordered'>";
+    echo "<thead class='table-color-heading'>";
+    echo "<tr>
+        <th width='20%'>Tanggal</th>
+        <th>Keterangan</th>
+        <th width='20%'>Jam Presensi</th>
+    </tr>";
+    echo "</thead>";
+    echo "<tbody>";
+    echo "</tbody>";
+    echo "</table>";
+    echo "</div>";
+    echo "</div>";
 }
-
-
 
 
 function getStatusLibur($tanggal)

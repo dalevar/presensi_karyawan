@@ -18,8 +18,44 @@ class Dashboard extends CI_Controller
     {
         if (!isset($login_button)) {
             $data['title'] = 'Dashboard Presensi';
-            $data['user'] = $this->session->userdata('user_data');
-            $data['absensi'] = PresensiModel::all();
+            $userData = $this->session->userdata('user_data');
+
+            $data['user'] = $userData;
+
+            $presensiModel = new PresensiModel();
+            $tanggal = date('Y-m-d');
+            //Terlambat
+            $keterlambatan = $presensiModel->hitungTerlambatHariIni($tanggal);
+            $data['keterlambatan'] = $keterlambatan;
+            //Tidak Hadir
+            $tidakHadir = $presensiModel->hitungTidakHadir($tanggal);
+            // dd($tidakHadir);
+            $data['tidakHadir'] = $tidakHadir;
+
+            $dataPresensi = $presensiModel->getPresensiArray();
+            // dd($dataPresensi);
+            $data['dataPresensi'] = $dataPresensi;
+
+            $getKaryawan = $presensiModel->getAllUserIds();
+            // dd($getKaryawan);
+            $data['getKaryawan'] = $getKaryawan;
+
+            $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
+            $month = isset($_GET['month']) ? $_GET['month'] : date('n');
+            $firstDay = mktime(0, 0, 0, $month, 1, $year);
+            $monthName = date('F', $firstDay);
+            $data['monthName'] = getIndonesianMonth($monthName);
+            // $dataPresensi = $presensiModel->getPresensiKaryawan($year, $month);
+            // // dd($dataPresensi);
+            // $data['presensi'] = $dataPresensi;
+
+            $data['year'] = $year;
+            $data['month'] = $month;
+            $data['tanggal'] = generateTanggalKerja($year, $month);
+
+
+            // dd($data['indonesianMonthName']);
+            // $data['absensi'] = PresensiModel::all();
 
 
             $this->load->view('template/header', $data);
