@@ -50,7 +50,7 @@
 
 
 							</svg>
-						</i><span class="ml-2">Laporan</span>
+						</i><span class="ml-2">Rekap Tahunan</span>
 					</a>
 				</li>
 				<li class="px-3 pt-3 pb-2">

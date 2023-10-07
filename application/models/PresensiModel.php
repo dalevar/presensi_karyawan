@@ -13,8 +13,6 @@ class PresensiModel extends Eloquent
         'created_on'
     ];
 
-
-
     public function getPresensiKaryawan($tahun, $bulan)
     {
         $presensi = PresensiModel::with('karyawan')
@@ -54,6 +52,104 @@ class PresensiModel extends Eloquent
         return $this->distinct()->pluck('created_by')->toArray();
     }
 
+    public function totalTerlambatBulanTahun($userId, $year, $month)
+    {
+        // Mengambil data presensi untuk pengguna, tahun, dan bulan yang dipilih
+        $presensi = $this->where('user_id', $userId)
+            ->whereYear('created_on', $year)
+            ->whereMonth('created_on', $month)
+            ->get();
+
+        if ($presensi->isEmpty()) {
+            return "-";
+        }
+
+        $selisihTotalMenit = 0;
+
+        foreach ($presensi as $dataPresensi) {
+            $jamTanggal = date('H:i:s', strtotime($dataPresensi->tanggal));
+            $jamCreatedOn = date('H:i:s', strtotime($dataPresensi->created_on));
+
+            // Menghitung selisih waktu dalam menit
+            $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+
+            if ($selisihWaktu > 0) {
+                // Mengkonversi selisih waktu ke menit
+                $selisihMenit = floor($selisihWaktu / 60);
+                $selisihTotalMenit += $selisihMenit;
+            }
+        }
+
+        return $selisihTotalMenit;
+    }
+
+    public function tidakHadirBulanTahun($userId, $year, $month)
+    {
+        $presensi = $this->where('user_id', $userId)
+            ->whereYear('created_on', $year)
+            ->whereMonth('created_on', $month)
+            ->get();
+
+        if ($presensi->isEmpty()) {
+            return "-";
+        }
+
+        // Menghitung jumlah hari dalam bulan ini
+        $jumlahHariBulan = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $jumlahTidakHadir = 0;
+        $jumlahPresensi = 0;
+
+        // Iterasi melalui tanggal-tanggal dalam bulan
+        for ($day = 1; $day <= $jumlahHariBulan; $day++) {
+            $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
+            $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
+            $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
+
+            foreach ($presensi as $presensiList) {
+                $presensiCreated = date('Y-m-d', strtotime($presensiList->created_on));
+
+                if ($isWeekday && $presensiCreated == $currentDate) {
+                    $jumlahPresensi++;
+                }
+            }
+
+            // Jika tidak ada data presensi pada tanggal ini dan itu adalah hari kerja, tambahkan ke jumlah ketidakhadiran
+            if ($isWeekday && $jumlahPresensi == 0) {
+                $jumlahTidakHadir++;
+            }
+        }
+
+        $TotaljumlahTidakHadir = $jumlahTidakHadir;
+        return $TotaljumlahTidakHadir;
+        // dd($TotaljumlahTidakHadir);
+    }
+
+
+
+    public function sisaKesempatanTidakHadir($userId, $year, $month)
+    {
+        // Menghitung jumlah maksimum ketidakhadiran dalam bulan ini
+        $jumlahMaksimumTidakHadir = 16;
+
+        // Mengambil data presensi untuk pengguna, tahun, dan bulan yang dipilih
+        $presensi = $this->where('user_id', $userId)
+            ->whereYear('created_on', $year)
+            ->whereMonth('created_on', $month)
+            ->get();
+
+        if ($presensi->isEmpty()) {
+            return "-";
+        }
+
+        // Menghitung jumlah ketidakhadiran aktual
+        $jumlahTidakHadir = $this->TidakHadirBulanTahun($userId, $year, $month);
+
+        // Menghitung sisa kesempatan ketidakhadiran
+        $sisaKesempatanTidakHadir = $jumlahMaksimumTidakHadir - $jumlahTidakHadir;
+
+        return $sisaKesempatanTidakHadir;
+    }
+
 
     public function getPresensiHariIni($tanggal)
     {
@@ -74,24 +170,6 @@ class PresensiModel extends Eloquent
 
         return $terlambat;
     }
-
-    // public function hitungTidakHadir($tanggal)
-    // {
-    //     $presensi = $this->getPresensiHariIni($tanggal);
-
-    //     if ($presensi->isEmpty()) {
-    //         // Jika tidak ada data presensi hari ini, ambil semua data sesuai tanggal
-    //         $semuaPresensi = $this->where('tanggal', $tanggal)->get();
-    //         $jumlahPresensi = $semuaPresensi->count();
-    //     } else {
-    //         $jumlahPresensi = $presensi->count();
-    //     }
-
-    //     // Hitung jumlah ketidak hadiran
-    //     $jumlahTidakHadir = $jumlahPresensi > 0 ? 1 : 0;
-
-    //     return $jumlahTidakHadir;
-    // }
 
     public function hitungTidakHadir($tanggal)
     {
@@ -121,9 +199,6 @@ class PresensiModel extends Eloquent
         return $jumlahTidakHadir;
     }
 
-
-
-
     public function getPresensiBulanIni($userId, $tanggal)
     {
         // Mendapatkan bulan dan tahun dari tanggal yang diberikan
@@ -145,18 +220,30 @@ class PresensiModel extends Eloquent
     {
         $presensi = $this->getPresensiBulanIni($userId, $tanggal);
 
-        if ($presensi->isEmpty()) {
-            return "-";
-        }
-
         // Menghitung jumlah hari dalam bulan ini
         $bulanIni = date('m', strtotime($tanggal));
         $tahun = date('Y', strtotime($tanggal));
         $jumlahHariBulan = cal_days_in_month(CAL_GREGORIAN, $bulanIni, $tahun);
 
-        $jumlahTidakHadir = $jumlahHariBulan - $presensi->count();
+        // Menghitung jumlah hari Minggu dalam bulan ini
+        $jumlahHariMinggu = 0;
+        for ($day = 1; $day <= $jumlahHariBulan; $day++) {
+            $currentDate = date('Y-m-d', strtotime("$tahun-$bulanIni-$day"));
+            $dayOfWeek = date('N', strtotime($currentDate));
+            if ($dayOfWeek == 7) { // Hari Minggu (7)
+                $jumlahHariMinggu++;
+            }
+        }
+
+        // Menghitung jumlah hari kerja dalam bulan ini
+        $jumlahHariKerja = $jumlahHariBulan - $jumlahHariMinggu;
+
+        // Menghitung jumlah tidak hadir
+        $jumlahTidakHadir = $jumlahHariKerja - $presensi->count();
+
         return $jumlahTidakHadir;
     }
+
 
     //menghitung terlambat per bulan
     public function hitungTerlambatBulanIni($userId, $tanggal, $bulanIni, $tahun)
@@ -205,7 +292,12 @@ class PresensiModel extends Eloquent
     public function hitungTidakHadirTahunIni($userId, $tahun)
     {
         // Mengambil semua presensi pengguna selama satu tahun
-        $presensiTahunIni = $this->getPresensiTahunIni($userId, $tahun);
+        $hariLibur = getHariLibur(); // Mengambil daftar tanggal libur nasional
+        $presensiTahunIni = $this->getPresensiTahunIni($userId, $tahun)
+            ->reject(function ($presensi) use ($hariLibur) {
+                return in_array($presensi->tanggal, $hariLibur); // Menghindari tanggal libur
+            });
+
         if ($presensiTahunIni->isEmpty()) {
             return "-";
         }
@@ -218,7 +310,6 @@ class PresensiModel extends Eloquent
 
         return $jumlahTidakHadirTahunIni;
     }
-
 
     //menghitung Terlambat Per Tahun
     public function hitungTerlambatTahunIni($userId, $tahun)
@@ -247,8 +338,6 @@ class PresensiModel extends Eloquent
 
         return $selisihTotalMenit;
     }
-
-
 
     public function getPresensiByUserTanggal($user_id, $tanggal)
     {

@@ -69,11 +69,18 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
+                            <ul class="nav nav-tabs" id="myTab-1" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Harian</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Bulanan</a>
+                                </li>
+                            </ul>
                             <h4 class="card-title">Data Presensi</h4>
                             <h6 class="text-secondary text-left"><?= $monthName . ' ' . $year ?></h6>
                         </div>
                         <div class="card-header-toolbar d-flex align-items-center">
-
                             <div class="d-flex mt-2 mb-4 float-right">
                                 <div class="form-group mb-0 vanila-daterangepicker d-flex">
                                     <div class="col-md-6">
@@ -113,109 +120,114 @@
                             </thead>
                             <tbody>
                                 <?php
-                                // Data presensi dalam bentuk array asosiatif
-                                $presensi = $dataPresensi;
-                                $tanggalKerja = $tanggal;
-                                $karyawan = $getKaryawan;
-                                // dd($Karyawan);
 
-                                // $presensi = [
-                                //     ['tanggal' => '10/6/2023', 'nama' => 'John Doe', 'status' => 'Hadir'],
-                                //     ['tanggal' => '10/6/2023', 'nama' => 'Jane Smith', 'status' => 'Absen'],
+                                $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
+                                $month = isset($_GET['month']) ? $_GET['month'] : date('n');
+                                // $tanggal = date("$year-$month");
+                                generateDataBodyTable($year, $month);
+                                // // Data presensi dalam bentuk array asosiatif
+                                // $presensi = $dataPresensi;
+                                // $tanggalKerja = $tanggal;
+                                // $karyawan = $getKaryawan;
+                                // // dd($Karyawan);
 
-                                //     ['tanggal' => '10/5/2023', 'nama' => 'John Doe', 'status' => 'Hadir'],
-                                //     ['tanggal' => '10/5/2023', 'nama' => 'Jane Smith', 'status' => 'Absen'],
-                                //     // Tambahkan data lainnya sesuai kebutuhan
-                                // ];
+                                // // $presensi = [
+                                // //     ['tanggal' => '10/6/2023', 'nama' => 'John Doe', 'status' => 'Hadir'],
+                                // //     ['tanggal' => '10/6/2023', 'nama' => 'Jane Smith', 'status' => 'Absen'],
 
-                                $currentDate = null;
+                                // //     ['tanggal' => '10/5/2023', 'nama' => 'John Doe', 'status' => 'Hadir'],
+                                // //     ['tanggal' => '10/5/2023', 'nama' => 'Jane Smith', 'status' => 'Absen'],
+                                // //     // Tambahkan data lainnya sesuai kebutuhan
+                                // // ];
 
-                                foreach ($tanggalKerja as $tanggal) {
-                                    // Inisialisasi daftar nama yang hadir pada tanggal ini
-                                    $namaHadir = array();
-                                    $status = array();
+                                // $currentDate = null;
 
-                                    // Loop melalui setiap entri dalam data presensi
-                                    foreach ($presensi as $data) {
-                                        $idKaryawan = $data['created_by'];
-                                        $karyawan = $this->KaryawanModel->find($idKaryawan);
+                                // foreach ($tanggalKerja as $tanggal) {
+                                //     // Inisialisasi daftar nama yang hadir pada tanggal ini
+                                //     $namaHadir = array();
+                                //     $status = array();
 
-                                        if (isset($data['tanggal']) && isset($data['created_by'])) {
-                                            // Mengambil tanggal presensi dari data presensi saat ini
-                                            $tanggalPresensi = date('Y-m-d', strtotime($data['tanggal']));
-                                            $createdOn = strtotime($data['created_on']);
-                                            $batasPresensi = strtotime($data['tanggal']);
+                                //     // Loop melalui setiap entri dalam data presensi
+                                //     foreach ($presensi as $data) {
+                                //         $idKaryawan = $data['created_by'];
+                                //         $karyawan = $this->KaryawanModel->find($idKaryawan);
 
-                                            $currentDate = date('Y-m-d');
-                                            $presensiCreated = date('Y-m-d', strtotime($data['created_on']));
+                                //         if (isset($data['tanggal']) && isset($data['created_by'])) {
+                                //             // Mengambil tanggal presensi dari data presensi saat ini
+                                //             $tanggalPresensi = date('Y-m-d', strtotime($data['tanggal']));
+                                //             $createdOn = strtotime($data['created_on']);
+                                //             $batasPresensi = strtotime($data['tanggal']);
 
-                                            // dd($tanggalPresensi);
+                                //             $currentDate = date('Y-m-d');
+                                //             $presensiCreated = date('Y-m-d', strtotime($data['created_on']));
 
-                                            // Jika tanggal presensi sama dengan tanggal kerja, tambahkan nama ke daftar nama yang hadir
-                                            if ($tanggalPresensi == $tanggal && $karyawan) {
-                                                $namaHadir[] = $karyawan->nama;
-                                                if ($createdOn <= $batasPresensi) {
-                                                    $status[] = 'Hadir';
-                                                } elseif ($createdOn > $batasPresensi) {
-                                                    $status[] = 'Terlambat (' . floor(($createdOn - $batasPresensi) / 60) . ' menit)';
-                                                } elseif ($presensiCreated >= $currentDate) {
-                                                    $status[] = 'Tidak Hadir';
-                                                }
-                                            }
-                                        }
-                                    }
+                                //             // dd($tanggalPresensi);
 
-                                    // // Tampilkan baris untuk setiap karyawan yang hadir pada tanggal tersebut
-                                    if (!empty($namaHadir)) {
-                                        for ($i = 0; $i < count($namaHadir); $i++) {
-                                            echo '<tr>';
-                                            // Tampilkan sel tanggal hanya pada baris pertama
-                                            if ($i === 0) {
-                                                echo '<td rowspan="' . count($namaHadir) . '" class="tanggal">' . $tanggal . '</td>';
-                                            }
-                                            echo '<td class="nama">' . $namaHadir[$i] . '</td>';
-                                            echo '<td class="status">' . $status[$i] . '</td>';
-                                            echo '</tr>';
-                                        }
-                                    } else {
-                                        echo '<tr>';
-                                        echo '<td class="tanggal">' . $tanggal . '</td>';
-                                        echo '<td colspan="2" class="text-center">Belum Ada Presensi</td>';
-                                        echo '</tr>';
-                                    }
-
-                                    // Tampilkan tanggal dan daftar nama yang hadir
-                                    echo '<tr>';
-                                    echo '<td class="tanggal">' . $tanggal . '</td>';
-                                    if (!empty($namaHadir)) {
-                                        echo '<td class="nama">' . implode('<br>', $namaHadir) . '</td>';
-                                        echo '<td class="status">' . implode('<br>', $status) . '</td>';
-                                    } else {
-                                        echo '<td colspan="2" class="text-center">Belum Ada Absensi</td>';
-                                    }
-                                    echo '</tr>';
-                                }
-
-
-
-                                // foreach ($presensi as $data) {
-                                //     $tanggalPresensiBaru = date('Y-m-d', strtotime($data['tanggal']));
-                                //     if ($currentDate !== $data['tanggal']) {
-                                //         // Jika tanggal berbeda, cetak baris baru dengan tanggal
-                                //         // echo '<tr>';
-                                //         // echo '<td rowspan="5" class="tanggal">' . $data['tanggal'] . '</td>';
-                                //         // echo '<td class="nama">' . $data['nama'] . '</td>';
-                                //         // echo '<td>' . $data['status'] . '</td>';
-                                //         // echo '</tr>';
-                                //         // $currentDate = $data['tanggal'];
-                                //     } else {
-                                //         // Jika tanggal sama, tambahkan baris dengan nama dan status
-                                //         // echo '<tr>';
-                                //         // echo '<td class="nama">' . $data['nama'] . '</td>';
-                                //         // echo '<td>' . $data['status'] . '</td>';
-                                //         // echo '</tr>';
+                                //             // Jika tanggal presensi sama dengan tanggal kerja, tambahkan nama ke daftar nama yang hadir
+                                //             if ($tanggalPresensi == $tanggal && $karyawan) {
+                                //                 $namaHadir[] = $karyawan->nama;
+                                //                 if ($createdOn <= $batasPresensi) {
+                                //                     $status[] = 'Hadir';
+                                //                 } elseif ($createdOn > $batasPresensi) {
+                                //                     $status[] = 'Terlambat (' . floor(($createdOn - $batasPresensi) / 60) . ' menit)';
+                                //                 } elseif ($presensiCreated >= $currentDate) {
+                                //                     $status[] = 'Tidak Hadir';
+                                //                 }
+                                //             }
+                                //         }
                                 //     }
+
+                                //     // // Tampilkan baris untuk setiap karyawan yang hadir pada tanggal tersebut
+                                //     if (!empty($namaHadir)) {
+                                //         for ($i = 0; $i < count($namaHadir); $i++) {
+                                //             echo '<tr>';
+                                //             // Tampilkan sel tanggal hanya pada baris pertama
+                                //             if ($i === 0) {
+                                //                 echo '<td rowspan="' . count($namaHadir) . '" class="tanggal">' . $tanggal . '</td>';
+                                //             }
+                                //             echo '<td class="nama">' . $namaHadir[$i] . '</td>';
+                                //             echo '<td class="status">' . $status[$i] . '</td>';
+                                //             echo '</tr>';
+                                //         }
+                                //     } else {
+                                //         echo '<tr>';
+                                //         echo '<td class="tanggal">' . $tanggal . '</td>';
+                                //         echo '<td colspan="2" class="text-center">Belum Ada Presensi</td>';
+                                //         echo '</tr>';
+                                //     }
+
+                                //     // Tampilkan tanggal dan daftar nama yang hadir
+                                //     // echo '<tr>';
+                                //     // echo '<td class="tanggal">' . $tanggal . '</td>';
+                                //     // if (!empty($namaHadir)) {
+                                //     //     echo '<td class="nama">' . implode('<br>', $namaHadir) . '</td>';
+                                //     //     echo '<td class="status">' . implode('<br>', $status) . '</td>';
+                                //     // } else {
+                                //     //     echo '<td colspan="2" class="text-center">Belum Ada Absensi</td>';
+                                //     // }
+                                //     // echo '</tr>';
                                 // }
+
+
+
+                                // // foreach ($presensi as $data) {
+                                // //     $tanggalPresensiBaru = date('Y-m-d', strtotime($data['tanggal']));
+                                // //     if ($currentDate !== $data['tanggal']) {
+                                // //         // Jika tanggal berbeda, cetak baris baru dengan tanggal
+                                // //         // echo '<tr>';
+                                // //         // echo '<td rowspan="5" class="tanggal">' . $data['tanggal'] . '</td>';
+                                // //         // echo '<td class="nama">' . $data['nama'] . '</td>';
+                                // //         // echo '<td>' . $data['status'] . '</td>';
+                                // //         // echo '</tr>';
+                                // //         // $currentDate = $data['tanggal'];
+                                // //     } else {
+                                // //         // Jika tanggal sama, tambahkan baris dengan nama dan status
+                                // //         // echo '<tr>';
+                                // //         // echo '<td class="nama">' . $data['nama'] . '</td>';
+                                // //         // echo '<td>' . $data['status'] . '</td>';
+                                // //         // echo '</tr>';
+                                // //     }
+                                // // }
                                 ?>
                             </tbody>
                         </table>

@@ -55,22 +55,12 @@ class Rekap extends CI_Controller
                 echo "Karyawan tidak ditemukan.";
             }
 
-            // Mendapatkan tanggal saat ini
-            $tanggal = date('Y-m-d');
-            $tanggalAbsen = date('Y-m-d 08:00:00');
-            $tanggalHadir = date('Y-m-d H:i:s');
-
             //data presensi
             $presensi = new PresensiModel();
             $absen = $presensi->where('user_id', $userId)->get()->first();
             $data['absensi'] = $absen;
 
-            //menghitung data dinamis kehadiran
-            $bulanIni = date('m', strtotime($tanggal));
-            $tahun = date('Y', strtotime($tanggal));
-
             $presensi = new PresensiModel();
-
             //Tanggal
             $tanggalBulanIni = getTanggal();
             $data['getTanggal'] = $tanggalBulanIni;
@@ -80,20 +70,22 @@ class Rekap extends CI_Controller
             $firstDay = mktime(0, 0, 0, $month, 1, $year);
             $monthName = date('F', $firstDay);
             $data['monthName'] = getIndonesianMonth($monthName);
-            // $dataPresensi = $presensiModel->getPresensiKaryawan($year, $month);
-            // // dd($dataPresensi);
-            // $data['presensi'] = $dataPresensi;
+
 
             $data['year'] = $year;
             $data['month'] = $month;
             $data['tanggal'] = generateTanggalKerja($year, $month);
 
+            $totalTerlambat = $presensi->totalTerlambatBulanTahun($userId, $year, $month);
 
-            // //Status
-            // $status = getStatus($userId, $tanggal);
-            // // var_dump($status);
-            // // die;
-            // $data['status'] = $status;
+            $data['totalTerlambat'] = $totalTerlambat;
+
+            $tidakHadir = $presensi->tidakHadirBulanTahun($userId, $year, $month);
+            $data['tidakHadir'] = $tidakHadir;
+
+            $sisaHari = $presensi->sisaKesempatanTidakHadir($userId, $year, $month);
+            $data['sisaHari'] = $sisaHari;
+            // dd($sisaHari);
 
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);

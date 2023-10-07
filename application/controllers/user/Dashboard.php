@@ -121,10 +121,10 @@ class Dashboard extends CI_Controller
             // die;
 
             //Status
-            $status = getStatus($userId, $tanggal);
-            // var_dump($status);
-            // die;
-            $data['status'] = $status;
+            // $status = getStatus($userId, $tanggal);
+            // // var_dump($status);
+            // // die;
+            // $data['status'] = $status;
 
             $existAbsen = PresensiModel::where('user_id', $userId)
                 ->where('tanggal', $tanggalAbsen)
