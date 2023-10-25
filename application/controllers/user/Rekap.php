@@ -76,16 +76,45 @@ class Rekap extends CI_Controller
             $data['month'] = $month;
             $data['tanggal'] = generateTanggalKerja($year, $month);
 
-            $totalTerlambat = $presensi->totalTerlambatBulanTahun($userId, $year, $month);
+            $totalTerlambatBulanan = $presensi->totalTerlambatBulanTahun($userId, $year, $month);
+            $data['totalTerlambatBulanan'] = $totalTerlambatBulanan;
 
-            $data['totalTerlambat'] = $totalTerlambat;
 
-            $tidakHadir = $presensi->tidakHadirBulanTahun($userId, $year, $month);
-            $data['tidakHadir'] = $tidakHadir;
+            $terlambat = totalTerlambatTahun($userId, $year);
+            // dd($terlambat);
+            $data['totalTerlambat'] = $terlambat;
 
-            $sisaHari = $presensi->sisaKesempatanTidakHadir($userId, $year, $month);
-            $data['sisaHari'] = $sisaHari;
-            // dd($sisaHari);
+            //BULANAN
+            $tidakHadirBulanan = $presensi->tidakHadirBulanan($userId, $month);
+            // dd($tidakHadir);
+            $data['tidakHadirBulanan'] = $tidakHadirBulanan;
+
+            $tidakHadirSakitBulanan = $presensi->hitungTotalSakitBulanan($userId, $month);
+            // dd($tidakHadir);
+            $data['tidakHadirSakitBulanan'] = $tidakHadirSakitBulanan;
+
+            $wfhBulanan = totalWFHBulanan($userId, $month);
+            $data['wfhBulanan'] = $wfhBulanan;
+
+            $totalCutiBulanan = sisaCutiBulanan($userId, $month);
+            $data['totalCutiBulanan'] = $totalCutiBulanan;
+
+            //TAHUNAN
+            $tidakHadirTahunan = $presensi->tidakHadirTahunan($userId, $year);
+            // dd($tidakHadirTahunan);
+            $data['tidakHadirTahunan'] = $tidakHadirTahunan;
+
+            $tidakHadirSakitTahunan = $presensi->hitungTotalSakitTahunan($userId, $year);
+            // dd($tidakHadir);
+            $data['tidakHadirSakitTahunan'] = $tidakHadirSakitTahunan;
+
+
+            $wfh = totalWFH($userId, $year);
+            $data['wfh'] = $wfh;
+
+            $totalCuti = sisaCutiTahunan($userId, $year);
+            $data['totalCuti'] = $totalCuti;
+
 
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);

@@ -2,20 +2,11 @@
 
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
-class KonfigModel extends Eloquent
+class HolidaysModel extends Eloquent
 {
-    protected $table = 'konfig';
+    protected $table = 'holidays';
     protected $primaryKey = 'id';
-    protected $fillable = ['nama', 'nilai'];
-
-
-
-
-
-
-
-
-    
+    protected $returnType = 'object';
 
     public $timestamps = false;
 }

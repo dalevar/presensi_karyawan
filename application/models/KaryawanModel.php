@@ -17,6 +17,30 @@ class KaryawanModel extends Eloquent
             ->get();
     }
 
+    public function getTanggalMasuk($karyawanId)
+    {
+        return $this->where('id', $karyawanId)
+            ->select('tanggal_masuk')
+            ->get();
+    }
+
+    function getEmployeeById($karyawanId)
+    {
+        $employee = KaryawanModel::find($karyawanId);
+        return $employee;
+    }
+
+    function getAllEmployees()
+    {
+        $employees = KaryawanModel::all();
+        return $employees->pluck('id')->toArray();
+    }
+
+    public function alokasiCuti()
+    {
+        return $this->hasOne(JabatanModel::class, 'jabatan_id', 'jabatan_id');
+    }
+
     public function jabatan()
     {
         return $this->belongsTo(JabatanModel::class, 'jabatan_id');

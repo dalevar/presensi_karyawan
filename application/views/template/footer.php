@@ -99,7 +99,6 @@
 
 				let id = $(this).data('id');
 
-
 				Swal.fire({
 					title: 'Anda Yakin ?',
 					text: "Data Akan dihapus!",
@@ -148,6 +147,7 @@
 			});
 		});
 	</script>
+
 	</body>
 
 	</html>

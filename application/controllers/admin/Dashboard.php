@@ -36,6 +36,10 @@ class Dashboard extends CI_Controller
             // dd($dataPresensi);
             $data['dataPresensi'] = $dataPresensi;
 
+            $presensiHariIni = $presensiModel->getPresensiHariIni($tanggal);
+            // dd($presensiHariIni);
+            $data['presensiHariIni'] = $presensiHariIni;
+
             $getKaryawan = $presensiModel->getAllUserIds();
             // dd($getKaryawan);
             $data['getKaryawan'] = $getKaryawan;

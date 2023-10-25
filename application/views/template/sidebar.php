@@ -25,7 +25,7 @@
 					</a>
 				</li>
 				<li class="px-3 pt-3 pb-2">
-					<span class="text-uppercase small font-weight-bold">Pages</span>
+					<span class="text-uppercase small font-weight-bold">Role & Presensi</span>
 				</li>
 
 				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'tipe_jabatan' || $this->uri->segment(2) == 'Tipe_jabatan' ?  'active' : '' ?>">
@@ -40,9 +40,9 @@
 					</a>
 				</li>
 
-				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'Laporan' || $this->uri->segment(2) == 'laporan' ? 'active' : '' ?>">
+				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'RekapTahunan' || $this->uri->segment(2) == 'rekapTahunan' ? 'active' : '' ?>">
 
-					<a href="<?= base_url('admin/Laporan') ?>" class="svg-icon">
+					<a href="<?= base_url('admin/RekapTahunan') ?>" class="svg-icon">
 						<i class="">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 
@@ -54,7 +54,7 @@
 					</a>
 				</li>
 				<li class="px-3 pt-3 pb-2">
-					<span class="text-uppercase small font-weight-bold">Components</span>
+					<span class="text-uppercase small font-weight-bold">Settings</span>
 				</li>
 				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'konfigurasi' || $this->uri->segment(2) == 'Konfigurasi' ? 'active' : '' ?>">
 					<a href="<?= base_url('admin/konfigurasi') ?>" class="svg-icon">
@@ -67,7 +67,7 @@
 						<span class="ml-2">Konfigurasi</span>
 					</a>
 				</li>
-				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'manageuser' || $this->uri->segment(2) == 'ManageUser' ? 'active' : '' ?>">
+				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'ManageUser' || $this->uri->segment(2) == 'manageUser' ? 'active' : '' ?>">
 					<a href="<?= base_url('admin/ManageUser') ?>" class="svg-icon">
 						<i class="">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">

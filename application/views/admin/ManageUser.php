@@ -5,22 +5,24 @@
                 <div class="d-flex flex-wrap justify-content-between align-items-center">
                     <h4 class="font-weight-bold"><?= $title ?></h4>
                 </div>
+                <nav aria-label="breadcrumb">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-flex flex-wrap justift-content-between">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page"><?= $title; ?></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
                 <div class="col-md-12 mt-4">
                     <div class="card">
                         <div class="card-body">
-                            <nav aria-label="breadcrumb">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="d-flex flex-wrap justift-content-between">
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
-                                                <li class="breadcrumb-item active" aria-current="page"><?= $title; ?></li>
-                                            </ol>
-                                        </div>
-                                        <button type="button" class="btn btn-primary mt-2 float-right mb-2" data-toggle="modal" data-target="#tambahKaryawan">Tambah</button>
-                                    </div>
-                                </div>
-                            </nav>
+                            <div class="d-flex flex-wrap justify-content-end">
+                                <button type="button" class="btn btn-primary mt-2 mb-2" data-toggle="modal" data-target="#tambahKaryawan">Tambah</button>
+                            </div>
 
                             <?php if ($this->session->flashdata('berhasil')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('berhasil') ?>" data-type="success"></div>
@@ -51,7 +53,6 @@
                                             <td><?= $kr->tipe ?></td>
                                             <td><?= date('d/m/Y', strtotime($kr->tanggal_masuk)) ?></td>
                                             <td>
-                                                <!-- Example single danger button -->
                                                 <div class="btn-group dropright">
                                                     <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         Action
@@ -69,6 +70,7 @@
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -247,7 +249,7 @@ foreach ($karyawan as $kr) : $no++ ?>
 <?php endforeach; ?>
 <!-- End Edit -->
 
-
+<!-- Hapus Karyawan -->
 <?php $no = 0;
 foreach ($karyawan as $kr) : $no++ ?>
     <div class="modal fade bd-example-modal-sm" id="hapusKaryawan<?= $kr->id ?>" tabindex="-1" role="dialog" aria-hidden="true">
@@ -277,6 +279,9 @@ foreach ($karyawan as $kr) : $no++ ?>
         </div>
     </div>
 <?php endforeach; ?>
+<!-- Hapus Karyawan -->
+
+
 
 <script>
     $(document).ready(function() {

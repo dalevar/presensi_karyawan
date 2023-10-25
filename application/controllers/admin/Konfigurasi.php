@@ -11,6 +11,7 @@ class Konfigurasi extends CI_Controller
         $this->load->model('UserModel');
         $this->load->library('session');
         $this->load->model('KonfigModel');
+        $this->load->model('PresensiModel');
     }
 
     public function index()
@@ -54,11 +55,11 @@ class Konfigurasi extends CI_Controller
                 }
             } else {
                 //Jika data dengan nama 'jam_masuk' tidak ditemukan, Anda dapat menambahkannya sebagai berikut
-                // $dataBaru = new KonfigModel();
-                // $dataBaru->nama = 'jam_masuk';
-                // $dataBaru->nama = 'jam_berakhir';
-                // $dataBaru->nilai = $jamMasuk;
-                // $dataBaru->save();
+                $dataBaru = new KonfigModel();
+                $dataBaru->nama = 'jam_masuk';
+                $dataBaru->nama = 'jam_berakhir';
+                $dataBaru->nilai = $jamMasuk;
+                $dataBaru->save();
 
                 $this->session->set_flashdata('gagal', 'Data tidak ada');
                 $this->index();
@@ -91,6 +92,48 @@ class Konfigurasi extends CI_Controller
         }
     }
 
+    public function alokasiSakit()
+    {
+        $this->form_validation->set_rules('batasSakit', 'Batas Maksimal Sakit', 'required');
+
+        if ($this->form_validation->run() == false) {
+            $this->session->set_flashdata('gagal', 'Batas Maksimal Sakit');
+            $this->index();
+        } else {
+            $input = $this->input->post(null, true);
+            $batasSakit = $input['batasSakit'];
+
+            $dataSakit = KonfigModel::where('nama', 'sakit')->first();
+            if ($dataSakit) {
+                $dataSakit->nilai = $batasSakit;
+
+                $dataSakit->save();
+                $this->session->set_flashdata('berhasil', 'Batas Maksimal Sakit Ditambahkan');
+                $this->index();
+            } else {
+                $this->session->set_flashdata('gagal', 'Data tidak ada');
+                $this->index();
+            }
+        }
+    }
+
+    public function cutiKurang()
+    {
+        $id = $this->input->post('id');
+        // $value = $this->input->post('value');
+        $dataSakit = KonfigModel::where('nama', 'cuti_kurang')->first();
+
+        if ($dataSakit) {
+            $dataSakit->nilai = $id;
+
+            $dataSakit->save();
+            $this->session->set_flashdata('berhasil', 'Cuti Dikurangi');
+            // $this->index();
+        } else {
+            $this->session->set_flashdata('gagal', 'Data tidak ada');
+            $this->index();
+        }
+    }
 
 
     public function _rules()

@@ -83,14 +83,19 @@ function hitungJumlahTidakMasuk($user_id, $tanggal)
 
 function getHariLibur()
 {
-
     // Load library HTTP client
     $CI = get_instance();
     $CI->load->library('curl');
+    $CI->load->model('HolidaysModel');
+    $holidaysModel = new HolidaysModel();
+    //lakukan pengecekan terhadap api
 
     // Permintaan ke API Hari Libur
     $response = $CI->curl->simple_get('https://api-harilibur.vercel.app/api');
+    //lalu cek data ke database, jika ada lakukan responsenya terhadap data
+    //jika data api ini tidak ada di dalam database maka masukkan data kedalam database
 
+    // dd($response);
     if ($response) {
         // Data JSON dari API
         $data = json_decode($response);
@@ -98,8 +103,20 @@ function getHariLibur()
         $filteredData = array_filter($data, function ($item) {
             return isset($item->is_national_holiday) && $item->is_national_holiday === true;
         });
-        // Proses data sesuai kebutuhan Anda
-        // Misalnya, Anda dapat menyimpannya ke dalam model atau menggunakannya dalam logika bisnis
+
+        foreach ($filteredData as $item) {
+            // Lakukan pengecekan apakah data dengan tanggal tertentu sudah ada dalam database
+            $existingHoliday = $holidaysModel->where('holiday_date', $item->holiday_date)->first();
+
+            if (!$existingHoliday) {
+                // Jika data belum ada, masukkan ke database
+                $newHoliday = new HolidaysModel();
+                $newHoliday->holiday_date = $item->holiday_date;
+                $newHoliday->holiday_name = $item->holiday_name;
+                $newHoliday->is_national_holiday = $item->is_national_holiday;
+                $newHoliday->save();
+            }
+        }
 
         return $filteredData;
     } else {
@@ -376,6 +393,7 @@ function generateCalendar($userId, $year, $month)
             $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
             $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
             $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+            $isSakit = $presensi->is_sakit;
 
             if ($isWeekday && $tanggalPresensi == $currentDate) {
                 // Presensi ditemukan untuk tanggal ini
@@ -383,12 +401,23 @@ function generateCalendar($userId, $year, $month)
 
                 // jam perbandingan dengan waktu presensinya
                 $jamPresensi = strtotime('08:00:00');
-                if ($waktuPresensi <= $jamPresensi) {
+                $jamTidakHadir = strtotime('00:00:00');
+                if ($waktuPresensi == $jamTidakHadir) {
+                    if ($isSakit) {
+                        $dayClass = 'text-secondary';
+                        $icon = 'ri-hospital-line';
+                        $tooltip = '-';
+                    }
+                    $dayClass = 'text-secondary';
+                    $icon = 'ri-close-circle-line';
+                    $tooltip = '-';
+                }
+                if ($waktuPresensi <= $jamPresensi && $waktuPresensi != $jamTidakHadir) {
                     // Presensi tepat waktu
                     $dayClass = 'text-green';
                     $icon = 'ri-checkbox-circle-line';
                     $tooltip = 'Presensi tepat waktu';
-                } else {
+                } else if ($waktuPresensi > $jamPresensi) {
                     // Presensi terlambat
                     $dayClass = 'text-warning';
                     $icon = 'ri-error-warning-line';
@@ -456,7 +485,7 @@ function generateCalendar($userId, $year, $month)
     echo "<tr>
         <th width='23%'>Tanggal</th>
         <th>Keterangan</th>
-        <th width='25%'>Jam Presensi</th>
+        <th width='30%'>Jam Presensi</th>
     </tr>";
     echo "</thead>";
     echo "<tbody>";
@@ -474,7 +503,8 @@ function generateCalendar($userId, $year, $month)
 
         // $jamPresensi = strtotime(date('H:i:s', strtotime('08:00:00')));
         $tanggalLibur = date('Y-m-d', strtotime($currentDate));
-        $tidakHadir = "Tidak Hadir";
+        $tidakHadir = "<span class='text-secondary font-weight-bold'><i class='ri-close-circle-line'></i> Tidak Hadir</span>";
+        $tidakHadirSakit = "<span class='text-secondary font-weight-bold'><i class='ri-hospital-line'></i> Sakit</span>";
 
         $keterangan = array();
         $statusJam = array();
@@ -484,25 +514,44 @@ function generateCalendar($userId, $year, $month)
             $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
             // jam perbandingan dengan waktu presensinya
             $jamPresensi = strtotime('08:00:00');
+            $jamTidakBerhadir = strtotime('00:00:00');
+            $isWFH = $presensi->is_wfh; // Ambil data is_wfh
+            $isSakit = $presensi->is_sakit;
+
 
             if ($isWeekday && $tanggalPresensi == $currentDate) {
-                // Presensi ditemukan untuk tanggal ini
-                $foundPresensi = true;
+                // // Presensi ditemukan untuk tanggal ini
+                // $foundPresensi = true;
                 $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
-
-                if ($waktuPresensi <= $jamPresensi) {
-                    $keterangan[] = "Berhadir";
-                    $statusJam[] = 'Jam ' .  date('H:i', $waktuPresensi) . ' Pagi';
+                if ($waktuPresensi <= $jamTidakBerhadir) {
+                    if ($isSakit == 1) {
+                        $tidakHadir = null;
+                        $keterangan[] = $tidakHadirSakit;
+                    }
+                    $keterangan[] = $tidakHadir;
+                    $tidakHadir = null;
+                }
+                if ($waktuPresensi <= $jamPresensi && $waktuPresensi != $jamTidakBerhadir) {
+                    $keterangan[] = "<span class='text-success font-weight-bold'><i class='ri-checkbox-circle-line'></i> Berhadir</span>";
+                    $statusJam[] = "<span class='text-success'>Jam " .  date('H:i', $waktuPresensi) . " Pagi <i class='ri-checkbox-circle-line'></i></span>";
                     // Ubah $tidakHadir menjadi null jika ada data presensi
                     $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
                 } elseif ($waktuPresensi > $jamPresensi) {
-                    $keterangan[] = "Terlambat";
-                    $statusJam[] = "Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit)";
+                    $keterangan[] = "<span class='text-warning font-weight-bold'><i class='ri-error-warning-line'></i> Terlambat</span>";
+                    $statusJam[] = "<span class='text-warning'>Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit) <i class='ri-error-warning-line'></i></span>";
                     $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
                 }
                 break;
             }
-            if ($isWeekday && $presensiCreated <= $currentDate) {
+            if ($isWeekday && $presensiCreated == $currentDate) {
                 $tidakHadir = null;
             }
         }
@@ -518,28 +567,32 @@ function generateCalendar($userId, $year, $month)
         }
 
         //ISI TABLE
-        echo "<tr>";
-        if ($day == $isWeekday) {
-            echo "<td>$day $indonesianMonthName $year</td>";
-            // Tampilkan status sesuai dengan nilai $tidakHadir
-            echo "<td>";
-            if ($tidakHadir !== null) {
-                echo $tidakHadir;
-            } elseif ($libur->holiday_date == $tanggalLibur) {
-                echo implode(", ", $keterangan);
-            } else {
-                echo implode(", ", $keterangan);
+        // Periksa apakah $currentDate lebih kecil dari atau sama dengan tanggal sekarang
+        if (strtotime($currentDate) <= strtotime(date('Y-m-d'))) {
+            //ISI TABLE
+            echo "<tr>";
+            if ($day == $isWeekday) {
+                echo "<td>$day $indonesianMonthName $year</td>";
+                // Tampilkan status sesuai dengan nilai $tidakHadir
+                echo "<td>";
+                if ($tidakHadir !== null) {
+                    echo $tidakHadir;
+                } elseif ($libur->holiday_date == $tanggalLibur) {
+                    echo implode("<br>", $keterangan);
+                } else {
+                    echo implode("<br> ", $keterangan);
+                }
+                echo "</td>";
+                echo "<td >";
+                if (!empty($statusJam)) {
+                    echo implode(", ", $statusJam);
+                } else {
+                    echo "-";
+                }
+                echo "</td>";
             }
-            echo "</td>";
-            echo "<td >";
-            if (!empty($statusJam)) {
-                echo implode(", ", $statusJam);
-            } else {
-                echo "-";
-            }
-            echo "</td>";
+            echo "</tr>";
         }
-        echo "</tr>";
     }
 
     echo "</tbody>";
@@ -560,7 +613,7 @@ function generateCalendar($userId, $year, $month)
     ";
 }
 
-function generateBodyTable($userId, $year, $month)
+function generateRekap($userId, $year, $month)
 {
     $ci = &get_instance();
     $ci->load->model('PresensiModel');
@@ -596,8 +649,8 @@ function generateBodyTable($userId, $year, $month)
 
         // $jamPresensi = strtotime(date('H:i:s', strtotime('08:00:00')));
         $tanggalLibur = date('Y-m-d', strtotime($currentDate));
-        $tidakHadir = "Tidak Hadir";
-
+        $tidakHadir = "<span class='text-secondary font-weight-bold'><i class='ri-close-circle-line'></i> Tidak Hadir</span>";
+        $tidakHadirSakit = "<span class='text-secondary font-weight-bold'><i class='ri-hospital-line'></i> Sakit</span>";
         $keterangan = array();
         $statusJam = array();
 
@@ -606,25 +659,42 @@ function generateBodyTable($userId, $year, $month)
             $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
             // jam perbandingan dengan waktu presensinya
             $jamPresensi = strtotime('08:00:00');
+            $jamTidakHadir = strtotime('00:00:00');
+            $isWFH = $presensi->is_wfh; // Ambil data is_wfh
+            $isSakit = $presensi->is_sakit;
 
             if ($isWeekday && $tanggalPresensi == $currentDate) {
                 // Presensi ditemukan untuk tanggal ini
                 $foundPresensi = true;
                 $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+                if ($waktuPresensi == $jamTidakHadir) {
+                    if ($isSakit) {
+                        $keterangan[] = $tidakHadirSakit;
+                        $tidakHadir = null;
+                    }
+                }
 
-                if ($waktuPresensi <= $jamPresensi) {
-                    $keterangan[] = "Berhadir";
-                    $statusJam[] = 'Jam ' .  date('H:i', $waktuPresensi) . ' Pagi';
+                if ($waktuPresensi <= $jamPresensi && $waktuPresensi != $jamTidakHadir) {
+                    $keterangan[] = "<span class='text-success font-weight-bold'><i class='ri-checkbox-circle-line'></i> Berhadir</span>";
+                    $statusJam[] = "<span class='text-success font-weight-bold'>Jam " .  date('H:i', $waktuPresensi) . " Pagi <i class='ri-checkbox-circle-line'></i></span>";
                     // Ubah $tidakHadir menjadi null jika ada data presensi
                     $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
                 } elseif ($waktuPresensi > $jamPresensi) {
-                    $keterangan[] = "Terlambat";
-                    $statusJam[] = "Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit)";
+                    $keterangan[] = "<span class='text-warning font-weight-bold'><i class='ri-error-warning-line'></i> Terlambat</span>";
+                    $statusJam[] = "<span class='text-warning font-weight-bold'>Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit) <i class='ri-error-warning-line'></i></span>";
                     $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
                 }
                 break;
             }
-            if ($isWeekday && $presensiCreated <= $currentDate) {
+            if ($isWeekday && $presensiCreated == $currentDate) {
                 $tidakHadir = null;
             }
         }
@@ -632,7 +702,8 @@ function generateBodyTable($userId, $year, $month)
         // Mendapatkan status hari libur
         foreach ($dataLibur as $libur) {
             if ($libur->holiday_date == $tanggalLibur) {
-                $keterangan[] = 'Libur Nasional';
+                $keterangan[] = "<span class='text-danger font-weight-bold'>Libur Nasional</span>";
+                $tidakHadir = null;
                 break;
             } else {
                 $tooltip = '';
@@ -640,32 +711,1169 @@ function generateBodyTable($userId, $year, $month)
         }
 
         //ISI TABLE
-        echo "<tr>";
-        if ($day == $isWeekday) {
-            echo "<td>$day $indonesianMonthName $year</td>";
-            // Tampilkan status sesuai dengan nilai $tidakHadir
-            echo "<td>";
-            if ($tidakHadir !== null) {
-                echo $tidakHadir;
-            } elseif ($libur->holiday_date == $tanggalLibur) {
-                echo implode(", ", $keterangan);
-            } else {
-                echo implode(", ", $keterangan);
+        if (strtotime($currentDate) <= strtotime(date('Y-m-d'))) {
+            echo "<tr>";
+            if ($day == $isWeekday) {
+                echo "<td>$day $indonesianMonthName $year</td>";
+                // Tampilkan status sesuai dengan nilai $tidakHadir
+                echo "<td>";
+                if ($tidakHadir !== null) {
+                    echo $tidakHadir;
+                } elseif ($libur->holiday_date == $tanggalLibur) {
+                    echo implode("  ", $keterangan);
+                } else {
+                    echo implode("<br>", $keterangan);
+                }
+                echo "</td>";
+                echo "<td >";
+                if (!empty($statusJam)) {
+                    echo implode(", ", $statusJam);
+                } else {
+                    echo "-";
+                }
+                echo "</td>";
             }
-            echo "</td>";
-            echo "<td >";
-            if (!empty($statusJam)) {
-                echo implode(", ", $statusJam);
-            } else {
-                echo "-";
-            }
-            echo "</td>";
+            echo "</tr>";
         }
+    }
+}
+
+function generateDataRekapTahunan($userId, $year)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('JabatanModel');
+    $ci->load->model('KaryawanModel');
+    $ci->load->model('KonfigModel');
+
+
+    $dataLibur = getHariLibur();
+
+
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getDataPresensiTahun($userId, $year);
+
+    $karyawanModel = new KaryawanModel();
+    $karyawan = $karyawanModel->getByUserId($userId);
+    if ($karyawan) {
+        $jabatanId = $karyawan->jabatan_id;
+        $cuti = JabatanModel::where('id', $jabatanId)->first();
+        if ($cuti) {
+            $alokasiCuti = $cuti->alokasi_cuti;
+        } else {
+            echo "-";
+        }
+        // dd($jabatanId);
+    } else {
+        echo "-";
+    }
+
+    $bulanText = array(); // Buat array untuk menyimpan nama bulan
+    $totalPresensiBulan = array();
+    $totalTerlambat = array();
+    $totalWFH = array();
+    $totalCuti = array();
+    $totalHariKerja = array();
+    $totalTidakHadir = array();
+    $totalSakit = array();
+
+    // Loop melalui bulan dan tanggal dalam tahun
+    for ($month = 1; $month <= 12; $month++) {
+        $totalTidakHadir = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
+        $totalSakit = $presensiModel->hitungTotalSakitBulanan($userId, $month);
+        $bulanText[$month] = getIndonesianMonth(date('F', mktime(0, 0, 0, $month, 1, $year))); // Simpan nama bulan
+        $totalPresensiBulan[$month] = 0;
+        $totalTerlambat[$month] = 0;
+        $totalWFH[$month] = 0;
+        $totalHariKerja[$month] = 0;
+        $jumlahTotalTidakHadir[$month] = $totalTidakHadir;
+        if (is_numeric($totalTidakHadir) && is_numeric($totalSakit)) {
+            $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir += $totalSakit;
+        } else {
+            $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir;
+        }
+        $jumlahTotalSakit[$month] = $totalSakit;
+        $alokasiCuti = $alokasiCuti -= $totalSakit;
+
+
+        //Tidak Hadir Terlambat
+        $jumlahTotalTidakHadirTerlambat[$month] = 0; //Menghitung Tidak Hadir
+        $totalKeterlambatan = 0; //Menampung waktu yang sudah lebih dari 8 jam
+        $totalWaktuTerlambat = 0; //Menampun keseluruhan waktu
+        $formatWaktuTerlambat = '';
+
+        //Tidak Hadir WFH
+        $jumlahTotalTidakHadirWFH[$month] = 0;
+        $totalKeterlambatanWFH = 0;
+        $totalWaktuWFH = 0;
+        $formatWaktuWFH = '';
+
+
+        $keterangan[$month] = array();
+        $statusJam[$month] = array();
+
+        $jumlahHariBulan = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        for ($day = 1; $day <= $jumlahHariBulan; $day++) {
+            $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
+            $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
+            $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
+
+            if ($isWeekday) {
+                $isHoliday = false;
+                foreach ($dataLibur as $libur) {
+                    if ($currentDate == $libur->holiday_date) {
+                        $isHoliday = true;
+                        break;  // Jika ditemukan sebagai hari libur, keluar dari loop
+                    }
+                }
+                if (!$isHoliday) {
+                    $totalHariKerja[$month]++;
+                }
+            }
+        }
+
+        echo "<tr>";
+        $totalCuti[$month] = $alokasiCuti;
+
+        // Loop melalui data presensi per bulan
+        foreach ($presensiList as $presensi) {
+            $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+            $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+            $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));
+            $jamCreatedOn = date('H:i:s', strtotime($presensi->created_on));
+            $jamTidakHadir = strtotime('00:00:00');
+            $isWFH = $presensi->is_wfh;
+            $isSakit = $presensi->is_sakit;
+
+            $monthPresensi = date('n', strtotime($tanggalPresensi)); // Ambil bulan dari data presensi
+            if ($monthPresensi >= 1 && $monthPresensi <= 12 && $monthPresensi == $month && $waktuPresensi != $jamTidakHadir) {
+                // Pastikan bulan dari data presensi adalah antara 1 dan 12
+                if (isset($totalPresensiBulan[$monthPresensi])) {
+                    $totalPresensiBulan[$monthPresensi]++; // Tambahkan jumlah presensi untuk bulan ini
+
+                    if ($waktuPresensi <= strtotime('08:00:00')) {
+                        $keterangan[$monthPresensi][] = "<span class='text-success font-weight-bold'><i class='ri-checkbox-circle-line'></i> Berhadir</span>";
+                        $statusJam[$monthPresensi][] = "<span class='text-success font-weight-bold'>Jam " . date('H:i', $waktuPresensi) . " Pagi <i 'class='ri-checkbox-circle-line'></i></span>";
+                    } elseif ($waktuPresensi > strtotime('08:00:00')) {
+                        $keterangan[$monthPresensi][] = "<span class='text-warning font-weight-bold'><i class='ri-error-warning-line'></i> Terlambat</span>";
+                        $statusJam[$monthPresensi][] = "<span class='text-warning font-weight-bold'>Terlambat (" . floor(($waktuPresensi - strtotime('08:00:00')) / 60) . " menit) <i class='ri-error-warning-line'></i></span>";
+                        $totalTerlambat[$monthPresensi]++;
+                        // dd($totalTerlambat);
+
+                        $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+                        if ($selisihWaktu > 0) {
+                            // Mengkonversi selisih waktu ke menit
+                            $selisihMenit = floor($selisihWaktu / 60);
+                            $totalKeterlambatan += $selisihMenit;
+                            $totalWaktuTerlambat += $selisihMenit;
+                            // $totalWaktuTerlambat += $totalKeterlambatanWFH;
+
+                            // Hitung jumlah jam
+                            $totalJam = floor($totalWaktuTerlambat / 60);
+
+                            // Hitung jumlah menit sisa setelah mengurangkan jam
+                            $totalMenit = $totalWaktuTerlambat  % 60;
+                            // $totalMenit += $totalKeterlambatanWFH;
+
+                            $formatWaktuTerlambat = $totalJam . " jam " . $totalMenit . " menit";
+                            // Periksa apakah total keterlambatan mencapai 8 jam (480 menit)
+                            if ($totalKeterlambatan >= 480) {
+                                $jumlahTotalTidakHadirTerlambat[$monthPresensi]++;
+                                $jumlahSeluruhTotalTidakHadir[$monthPresensi]++;
+                                // dd($jumlahTotalTidakHadir);
+                                if ($totalCuti > 0) {
+                                    $totalCuti[$monthPresensi]--;
+                                }
+                                // Kurangi 8 jam (480 menit) dari total keterlambatan
+                                $totalKeterlambatan -= 480;
+                            }
+                        }
+                    }
+
+                    if ($isWFH == 1) {
+                        $keterangan[$monthPresensi][] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                        $totalWFH[$monthPresensi]++;
+
+                        // Dapatkan data konfigurasi WFH
+                        $dataWFH = KonfigModel::where('nama', 'wfh')->first();
+
+                        if ($dataWFH) {
+                            $nilaiWFH = $dataWFH->nilai;
+                            if ($isWFH == 1) {
+                                // Ubah nilai konfigurasi WFH ke dalam bentuk menit
+                                $nilaiWFH = intval($nilaiWFH); // Mengambil angka dari string
+
+                                // Tambahkan nilai konfigurasi WFH ke total keterlambatan
+                                $totalKeterlambatanWFH += $nilaiWFH;
+                                $totalWaktuWFH += $nilaiWFH;
+
+                                // Hitung jumlah jam
+                                $totalJamWFH = floor($totalWaktuWFH / 60);
+
+                                // Hitung jumlah menit sisa setelah mengurangkan jam
+                                $totalMenitWFH = $totalWaktuWFH  % 60;
+                                // $totalMenit += $totalKeWFHanWFH;
+                                $formatWaktuWFH = $totalJamWFH . " jam " . $totalMenitWFH . " menit";
+
+                                if ($totalKeterlambatanWFH >= 480) {
+                                    $jumlahTotalTidakHadirWFH[$monthPresensi]++;
+                                    $jumlahSeluruhTotalTidakHadir[$monthPresensi]++;
+
+                                    if ($totalCuti > 0) {
+                                        $totalCuti[$monthPresensi]--;
+                                    }
+                                    // Kurangi 8 jam (480 menit) dari total keterlambatan
+                                    $totalKeterlambatanWFH -= 480;
+                                }
+                            } else {
+                                $formatWaktuWFH = '-';
+                            }
+                        }
+                    }
+                } else {
+                }
+            }
+        }
+
+        if ($totalPresensiBulan[$month] > 0) {
+            echo "<td>" . $totalHariKerja[$month] . " Hari Kerja</td>";
+            echo "<td><a type='button' class='btn-gc-cell' id='btn-keterangan' data-month='$month'>$bulanText[$month]</a></td>";
+            echo "<td>Total Presensi: " . $totalPresensiBulan[$month] . "</td>";
+            echo "<td>";
+            echo "Total Tidak Hadir : $jumlahSeluruhTotalTidakHadir[$month]";
+            echo "<button class='btn btn-sm text-danger' id='toggleDetailButton$month'><i class='ri-error-warning-line'></i> Detail</button>";
+            echo "<ul class='list-group' id='statusList$month' style='display: none'>
+    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+        Tidak Hadir
+        <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
+    </li>
+    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+        Sakit
+        <span class='badge badge-danger badge-pill'>$jumlahTotalSakit[$month]</span>
+    </li>
+    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+        Terlambat
+        <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+    </li>
+    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+        WFH
+        <span class='badge badge-info badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
+    </li>
+</ul>";
+            echo "</td>";
+            echo "<td>";
+            echo "Total Terlambat : $totalTerlambat[$month]";
+            echo "<br><button class='btn btn-sm text-warning p-0' id='waktuDetailButton$month'><i class='ri-error-warning-line'></i>Total Waktu</button>";
+            echo "<ul class='list-group' id='waktu$month' style='display: none'>
+        <span class='badge badge-danger badge-pill'>$formatWaktuTerlambat</span>
+</ul>";
+            echo "</td>";
+            echo "<td>";
+            echo "Total WFH : $totalWFH[$month]";
+            echo "<br><button class='btn btn-sm text-warning p-0' id='WFHDetailButton$month'><i class='ri-error-warning-line'></i>Total Waktu</button>";
+            echo "<ul class='list-group' id='WFH$month' style='display: none'>
+        <span class='badge badge-danger badge-pill'>$formatWaktuWFH</span>
+</ul>";
+            echo "</td>";
+            echo "<td>";
+            if (empty($totalCuti[$month]) || $totalCuti[$month] < 4) {
+                echo "Total Cuti: 0 Hari";
+            } else {
+                echo "Total Cuti: " . $totalCuti[$month] . " Hari";
+            }
+            echo "<br><button class='btn btn-sm text-secondary p-0' id='cutiDetailButton$month'><i class='ri-error-warning-line'></i>Keterangan</button>";
+            echo "<ul class='list-group' id='cuti$month' style='display: none'>
+            <span class='badge text-primary badge-pill'>Total Cuti dikurangi dari :</span>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+            Izin/Tidak Hadir
+            <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+        </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+            Terlambat
+            <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+        </li>
+        <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+        WFH
+        <span class='badge badge-info badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
+    </li>
+</ul>";
+            echo "</td>";
+        } else {
+            echo "<td class='text-secondary'>" . $totalHariKerja[$month] . " Hari Kerja</td>";
+            echo "<td class='text-secondary'>$bulanText[$month]</td>";
+            echo "<td colspan='7' class='text-center text-secondary'>Tidak ada presensi di bulan ini</td>";
+        }
+
         echo "</tr>";
     }
 }
 
-function generateDataBodyTable($year, $month)
+
+function generateDataBulanan($year, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('KaryawanModel');
+
+    // Hari Libur Nasional
+    $dataLibur = getHariLibur();
+
+    $tanggalKerja = generateTanggalKerja($year, $month);
+
+    // Data Presensi Nama Karyawan
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getPresensiBulanTahun($year, $month);
+    // dd($presensiList);
+    $karyawanId = $presensiModel->getAllUserIds();
+
+    //Karyawan
+    $karyawanModel = new KaryawanModel();
+    $karyawanList = $karyawanModel->getKaryawan();
+
+    foreach ($tanggalKerja as $tanggal) {
+        $idKaryawan = $karyawanId;
+        // dd($idKaryawan);
+        $namaKaryawan = array();
+        $jamPresensi = array();
+        $tidakHadir = "<span class='text-secondary font-weight-bold'><i class='ri-close-circle-line'></i> Tidak Hadir</span>";
+        $sakit = "<span class='text-secondary font-weight-bold'><i class='ri-hospital-line'></i> Sakit</span>";
+
+        $tanggalFormat = date('d-F-Y', strtotime($tanggal));
+        $tanggalIndonesia = date('d-M-Y', strtotime($tanggalFormat));
+
+        // Mendapatkan status hari libur
+        $isLiburNasional = false;
+        foreach ($dataLibur as $libur) {
+            if ($libur->holiday_date == $tanggal) {
+                $isLiburNasional = true;
+                break;
+            }
+        }
+
+        $listKaryawan = count($karyawanList);
+
+        for ($i = 0; $i < $listKaryawan; $i++) {
+            echo "<tr>";
+            if ($i === 0) {
+                echo "<td rowspan='" . $listKaryawan . "' class='text-center'>$tanggalIndonesia</td>";
+            }
+
+            // Mengambil nama dari data karyawan dan menambahkannya ke string
+            $namaKaryawan = $karyawanList[$i]->nama;
+            $ID = $karyawanList[$i]->id;
+            $status = $isLiburNasional ? "<span class='text-danger font-weight-bold'>Libur Nasional</span>" : $tidakHadir;
+            $jamPresensi = "";
+            echo "<td>" . $namaKaryawan . "</td>";
+
+
+            foreach ($presensiList as $presensi) {
+                $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+                $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+                $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+                $batasWaktu = strtotime('08:00:00');
+                $jamTidakHadir = strtotime('00:00:00');
+
+                $isWFH = $presensi->is_wfh; // Ambil data is_wfh
+                $isSakit = $presensi->is_sakit;
+                $keterangan = "";
+
+                if ($ID == $presensi->created_by) {
+
+                    if ($tanggal == $presensiCreated && $waktuPresensi <= strtotime('08:00:00') && $waktuPresensi != $jamTidakHadir) {
+                        $status = "<span class='text-success font-weight-bold'>Hadir</span>";
+                        $jamPresensi = "<span class='text-success font-weight-bold'>" . date('H:i:s', $waktuPresensi) . " Pagi</span>";
+                        if ($isWFH == 1) {
+                            $keterangan = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                        }
+                        break;
+                    } elseif ($tanggal == $presensiCreated && $waktuPresensi > strtotime('08:00:00')) {
+                        $status = "<span class='text-warning font-weight-bold'>Terlambat</span>";
+                        $jamPresensi = "<span class='text-warning font-weight-bold'>" . date('H:i:s', $waktuPresensi) . " (" . floor(($waktuPresensi - $batasWaktu) / 60) . " Menit)</span>";
+                        if ($isWFH == 1) {
+                            $keterangan = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                        }
+                        break;
+                    } elseif ($tanggal == $presensiCreated && $waktuPresensi == $jamTidakHadir) {
+                        if ($isSakit == 1) {
+                            $status = $sakit;
+                        }
+                    }
+                }
+            }
+
+            // Periksa jika tanggal presensi lebih besar dari tanggal saat ini
+            if (strtotime($tanggal) > strtotime('now')) {
+                $status = "<span class='text-secondary font-weight-bold'>Belum Ada Presensi</span>";
+                echo "<td colspan='2' class='text-center'>" . $status . "</td>";
+                $jamPresensi = ""; // Kosongkan jam presensi
+            } else {
+                // Menampilkan data status dan jam presensi
+                echo "<td>" . $status . "<br>" . $keterangan . "</td>";
+                echo "<td>" . $jamPresensi . "</td>";
+            }
+            echo "</tr>";
+        }
+    }
+}
+
+function generateRekapBulanan($year, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('KaryawanModel');
+    $ci->load->model('JabatanModel');
+    $ci->load->model('KonfigModel');
+
+
+
+    // Ambil daftar karyawan
+    $karyawanModel = new KaryawanModel();
+    $karyawanList = $karyawanModel->getKaryawan();
+
+    // Ambil data presensi untuk bulan dan tahun tertentu
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getPresensiBulan($month);
+
+
+    // Iterasi melalui setiap karyawan
+    $no = 1;
+
+    foreach ($karyawanList as $karyawan) {
+        $userId = $karyawan->user_id;
+        $totalTidakHadir = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
+        $totalSakit = $presensiModel->TotalSakitBulanTahun($userId, $year, $month);
+        // dd($totalTidakHadir);
+
+        $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
+        // dd($cuti);
+        if ($cuti) {
+            $alokasiCuti = $cuti->alokasi_cuti;
+        } else {
+            echo "-";
+        }
+
+        $totalKehadiran = 0;
+        $jumlahTotalTidakHadir = $totalTidakHadir;
+        $jumlahTotalSakit = $totalSakit;
+        // dd($jumlahTotalTidakHadir);
+        $totalKeterlambatan = 0;
+        $totalTidakHadirTerlambat = 0;
+        $totalWFH = 0;
+        $totalCuti = $alokasiCuti;
+        $totalWaktuTerlambat = 0;
+
+        $nilaiWFH = 0;
+        $totalKeterlambatanWFH = 0;
+        $totalTidakHadirWFH = 0;
+        $totalWaktuWFH = 0;
+        $formatWaktuTerlambat = '-';
+        $formatWaktuWFH = '-';
+
+        $jumlahHariBulan = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+        for ($day = 1; $day <= $jumlahHariBulan; $day++) {
+            $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
+
+            if (strtotime($currentDate) <= strtotime(date('Y-m-d'))) {
+                $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
+
+                foreach ($presensiList as $presensi) {
+                    $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+                    $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+                    // $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+                    $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));
+                    $jamCreatedOn = date('H:i:s', strtotime($presensi->created_on));
+
+                    $isWFH = $presensi->is_wfh;
+
+                    if ($currentDate == $tanggalPresensi && $karyawan->id == $presensi->created_by) {
+                        //Total Kehadiran 
+                        if ($waktuPresensi <= strtotime('08:00:00') || $waktuPresensi > strtotime('08:00:00')) {
+                            $totalKehadiran++;
+                        }
+                        //Total Terlambat
+                        // Menghitung selisih waktu dalam menit
+                        $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+                        if ($selisihWaktu > 0) {
+                            // Mengkonversi selisih waktu ke menit
+                            $selisihMenit = floor($selisihWaktu / 60);
+                            $totalKeterlambatan += $selisihMenit;
+                            $totalWaktuTerlambat += $selisihMenit;
+                            // $totalWaktuTerlambat += $totalKeterlambatanWFH;
+
+                            // Hitung jumlah jam
+                            $totalJam = floor($totalWaktuTerlambat / 60);
+
+                            // Hitung jumlah menit sisa setelah mengurangkan jam
+                            $totalMenit = $totalWaktuTerlambat  % 60;
+                            // $totalMenit += $totalKeterlambatanWFH;
+
+                            $formatWaktuTerlambat = $totalJam . " jam " . $totalMenit . " menit";
+
+
+                            // Periksa apakah total keterlambatan mencapai 8 jam (480 menit)
+                            if ($totalKeterlambatan >= 480) {
+                                $totalTidakHadirTerlambat++;
+                                $jumlahTotalTidakHadir++;
+                                // dd($jumlahTotalTidakHadir);
+                                if ($totalCuti > 0) {
+                                    $totalCuti--;
+                                }
+                                // Kurangi 8 jam (480 menit) dari total keterlambatan
+                                $totalKeterlambatan -= 480;
+                            }
+                        }
+
+                        // Hitung jumlah data WFH
+                        //Jika WFH lakukan pengurangan Menit atau menambah keterlambatan sesuai konfigurasi
+                        if ($isWFH == 1) {
+                            $totalWFH++;
+
+                            // Dapatkan data konfigurasi WFH
+                            $dataWFH = KonfigModel::where('nama', 'wfh')->first();
+
+                            // Periksa apakah data konfigurasi WFH ada
+                            if ($dataWFH) {
+                                // Ambil nilai konfigurasi WFH
+                                $nilaiWFH = $dataWFH->nilai;
+
+                                // Hitung total keterlambatan
+                                if ($isWFH == 1) {
+                                    // Ubah nilai konfigurasi WFH ke dalam bentuk menit
+                                    $nilaiWFH = intval($nilaiWFH); // Mengambil angka dari string
+
+                                    // Tambahkan nilai konfigurasi WFH ke total keterlambatan
+                                    $totalKeterlambatanWFH += $nilaiWFH;
+                                    $totalWaktuWFH += $nilaiWFH;
+
+                                    // Hitung jumlah jam
+                                    $totalJamWFH = floor($totalWaktuWFH / 60);
+
+                                    // Hitung jumlah menit sisa setelah mengurangkan jam
+                                    $totalMenitWFH = $totalWaktuWFH  % 60;
+                                    // $totalMenit += $totalKeWFHanWFH;
+                                    $formatWaktuWFH = $totalJamWFH . " jam " . $totalMenitWFH . " menit";
+
+                                    if ($totalKeterlambatanWFH >= 480) {
+                                        $totalTidakHadirWFH++;
+                                        $jumlahTotalTidakHadir++;
+
+                                        if ($totalCuti > 0) {
+                                            $totalCuti--;
+                                        }
+                                        // Kurangi 8 jam (480 menit) dari total keterlambatan
+                                        $totalKeterlambatanWFH -= 480;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // Output data rekap karyawan
+        echo "<tr>";
+        echo "<td>" . $no++ . "</td>";
+        echo "<td><button type='button' class='btn toggleDetailButton inner-shadow' style='text-decoration: none; transition: text-decoration 0.3s; ' data-toggle='collapse' data-target='#karyawanDetail$no'>" . $karyawan->nama . "</button></td>";
+        echo "<td>" . $karyawan->jabatan . "</td>";
+        echo "<td> Total Berhadir : " . $totalKehadiran . " Hari</td>";
+        echo "<td>";
+        echo "$jumlahTotalTidakHadir Hari";
+        echo "<button class='btn btn-sm text-danger' data-toggle='collapse' data-target='#statusList$no'><i class='ri-error-warning-line'></i> Detail</button>";
+        echo "<ul class='list-group' id='statusList$no' style='display: none'>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+               Tidak Hadir
+               <span class='badge badge-danger badge-pill'>$totalTidakHadir</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+               Sakit
+               <span class='badge badge-danger badge-pill'>$jumlahTotalSakit</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+               Terlambat
+               <span class='badge badge-warning badge-pill'>$totalTidakHadirTerlambat</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+               WFH
+               <span class='badge badge-info badge-pill'>$totalTidakHadirWFH</span>
+            </li>
+         </ul>
+         ";
+        echo "</td>";
+        // echo "<td></td>";
+
+
+        echo "<td>";
+        if (!$totalTidakHadirTerlambat == 0) {
+            echo "<span class='text-warning d-inline-block' tabindex='0' data-toggle='tooltip' title='Dianggap Tidak Hadir : $totalTidakHadirTerlambat Hari' >" . $formatWaktuTerlambat . " <i class='ri-error-warning-line'></i></span><br> (" . $totalTidakHadirTerlambat . " Hari)";
+        } else {
+            echo "<span class='text-warning d-inline-block' tabindex='0' data-toggle='tooltip' title='Dianggap Tidak Hadir : $totalTidakHadirTerlambat Hari' >" . $formatWaktuTerlambat . " <i class='ri-error-warning-line'></i></span>";
+        }
+        echo "</td>";
+        echo "<td>" . $totalWFH . " Hari <span class='text-info d-inline-block' tabindex='0' data-toggle='tooltip' title='Total WFH : $formatWaktuWFH Menit ($totalTidakHadirWFH Hari)' ><i class='ri-error-warning-line'></i></td>";
+        echo "<td>" . $totalCuti . " Hari</td>";
+        echo "</tr>";
+    }
+}
+
+function generateRekapTahunan($year, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('KaryawanModel');
+    $ci->load->model('JabatanModel');
+
+    // Ambil daftar karyawan
+    $karyawanModel = new KaryawanModel();
+    $karyawanList = $karyawanModel->getKaryawan();
+
+
+    // Ambil data presensi untuk bulan dan tahun tertentu
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getPresensiTahun($year);
+
+
+    // Iterasi melalui setiap karyawan
+    $no = 1;
+
+    foreach ($karyawanList as $karyawan) {
+        $karyawanId = $karyawan->id;
+        $userId = $karyawan->user_id;
+        $totalTidakHadir = 0;
+        // $totalSakit = 0;
+        for ($month = 1; $month <= 12; $month++) {
+            // Panggil metode Anda yang sudah ada untuk menghitung ketidakhadiran bulanan
+            $jumlahTidakHadirBulan = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
+            $totalSakit = $presensiModel->hitungTotalSakitTahunan($userId, $year);
+            // dd($totalSakit);
+            // dd($jumlahTidakHadirBulan);
+            // Pastikan bahwa $jumlahTidakHadirBulan adalah numerik sebelum menambahkannya ke total tahunan
+            if (is_numeric($jumlahTidakHadirBulan)) {
+                $totalTidakHadir += $jumlahTidakHadirBulan;
+            }
+        }
+
+        $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
+        if ($cuti) {
+            $alokasiCuti = $cuti->alokasi_cuti;
+        } else {
+            echo "Tidak Ada";
+        }
+
+        $totalKehadiran = 0;
+        $jumlahTotalTidakHadir = $totalTidakHadir;
+        $jumlahSakit = $totalSakit;
+        // dd($jumlahTotalTidakHadir);
+        $totalKeterlambatan = 0;
+        $totalTidakHadirTerlambat = 0;
+        $totalWFH = 0;
+        $totalCuti = $alokasiCuti;
+        $totalWaktuTerlambat = 0;
+
+        $nilaiWFH = 0;
+        $totalKeterlambatanWFH = 0;
+        $totalTidakHadirWFH = 0;
+        $totalWaktuWFH = 0;
+        $formatWaktuTerlambat = '-';
+        $formatWaktuWFH = '-';
+
+        $currentYear = $year;
+        foreach ($presensiList as $presensi) {
+            $tahunPresensi = date('Y', strtotime($presensi->tanggal));
+            $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+            $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));
+            $jamCreatedOn = date('H:i:s', strtotime($presensi->created_on));
+
+            $isWFH = $presensi->is_wfh;
+
+            if ($currentYear == $tahunPresensi && $karyawan->id == $presensi->created_by) {
+                //Total Kehadiran 
+                if ($waktuPresensi <= strtotime('08:00:00') || $waktuPresensi > strtotime('08:00:00')) {
+                    $totalKehadiran++;
+                }
+                //Total Terlambat
+                // Menghitung selisih waktu dalam menit
+                $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+                if ($selisihWaktu > 0) {
+                    // Mengkonversi selisih waktu ke menit
+                    $selisihMenit = floor($selisihWaktu / 60);
+                    $totalKeterlambatan += $selisihMenit;
+                    $totalWaktuTerlambat += $selisihMenit;
+                    // $totalWaktuTerlambat += $totalKeterlambatanWFH;
+
+                    // Hitung jumlah jam
+                    $totalJam = floor($totalWaktuTerlambat / 60);
+
+                    // Hitung jumlah menit sisa setelah mengurangkan jam
+                    $totalMenit = $totalWaktuTerlambat  % 60;
+                    // $totalMenit += $totalKeterlambatanWFH;
+
+                    $formatWaktuTerlambat = $totalJam . " jam " . $totalMenit . " menit";
+
+
+                    // Periksa apakah total keterlambatan mencapai 8 jam (480 menit)
+                    if ($totalKeterlambatan >= 480) {
+                        $totalTidakHadirTerlambat++;
+                        $jumlahTotalTidakHadir++;
+                        // dd($jumlahTotalTidakHadir);
+                        if ($totalCuti > 0) {
+                            $totalCuti--;
+                        }
+                        // Kurangi 8 jam (480 menit) dari total keterlambatan
+                        $totalKeterlambatan -= 480;
+                    }
+                }
+
+                // Hitung jumlah data WFH
+                //Jika WFH lakukan pengurangan Menit atau menambah keterlambatan sesuai konfigurasi
+                if ($isWFH == 1) {
+                    $totalWFH++;
+
+                    // Dapatkan data konfigurasi WFH
+                    $dataWFH = KonfigModel::where('nama', 'wfh')->first();
+
+                    // Periksa apakah data konfigurasi WFH ada
+                    if ($dataWFH) {
+                        // Ambil nilai konfigurasi WFH
+                        $nilaiWFH = $dataWFH->nilai;
+
+                        // Hitung total keterlambatan
+                        if ($isWFH == 1) {
+                            // Ubah nilai konfigurasi WFH ke dalam bentuk menit
+                            $nilaiWFH = intval($nilaiWFH); // Mengambil angka dari string
+
+                            // Tambahkan nilai konfigurasi WFH ke total keterlambatan
+                            $totalKeterlambatanWFH += $nilaiWFH;
+                            $totalWaktuWFH += $nilaiWFH;
+
+                            // Hitung jumlah jam
+                            $totalJamWFH = floor($totalWaktuWFH / 60);
+
+                            // Hitung jumlah menit sisa setelah mengurangkan jam
+                            $totalMenitWFH = $totalWaktuWFH  % 60;
+                            // $totalMenit += $totalKeWFHanWFH;
+                            $formatWaktuWFH = $totalJamWFH . " jam " . $totalMenitWFH . " menit";
+
+                            if ($totalKeterlambatanWFH >= 480) {
+                                $totalTidakHadirWFH++;
+                                $jumlahTotalTidakHadir++;
+
+                                if ($totalCuti > 0) {
+                                    $totalCuti--;
+                                }
+                                // Kurangi 8 jam (480 menit) dari total keterlambatan
+                                $totalKeterlambatanWFH -= 480;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        echo "<tr>";
+        echo "<td>" . $no++ . "</td>";
+        echo "<td><button type='button' class='btn toggleDetailButtonTahunan' data-toggle='collapse' data-target='#karyawanDetailTahunan$no'>" . $karyawan->nama . "</button></td>";
+        echo "<td>" . $karyawan->jabatan . "</td>";
+        echo "<td> Total Berhadir : " . $totalKehadiran . " Hari</td>";
+        echo "<td>";
+        echo "$jumlahTotalTidakHadir Hari";
+        echo "<button class='btn btn-sm text-danger p-0' data-toggle='collapse' data-target='#statusListTahunan$no'><i class='ri-error-warning-line'></i> Detail</button>";
+        echo "<ul class='list-group' id='statusListTahunan$no' style='display: none'>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+               Tidak Hadir
+               <span class='badge badge-danger badge-pill'>$totalTidakHadir</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+               Sakit
+               <span class='badge badge-danger badge-pill'>$jumlahSakit</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+               Terlambat
+               <span class='badge badge-warning badge-pill'>$totalTidakHadirTerlambat</span>
+            </li>
+            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+               WFH
+               <span class='badge badge-info badge-pill'>$totalTidakHadirWFH</span>
+            </li>
+         </ul>
+         ";
+        echo "</td>";
+        // echo "<td></td>";
+        echo "<td>";
+        if (!$totalTidakHadirTerlambat == 0) {
+            echo "<span class='text-warning d-inline-block' tabindex='0' data-toggle='tooltip' title='Dianggap Tidak Hadir : $totalTidakHadirTerlambat Hari' >" . $formatWaktuTerlambat . " <i class='ri-error-warning-line'></i></span><br> (" . $totalTidakHadirTerlambat . " Hari)";
+        } else {
+            echo "<span class='text-warning d-inline-block' tabindex='0' data-toggle='tooltip' title='Dianggap Tidak Hadir : $totalTidakHadirTerlambat Hari' >" . $formatWaktuTerlambat . " <i class='ri-error-warning-line'></i></span>";
+        }
+        echo "</td>";
+        echo "<td>" . $totalWFH . " Hari <span class='text-info d-inline-block' tabindex='0' data-toggle='tooltip' title='Total WFH : $formatWaktuWFH Menit ($totalTidakHadirWFH Hari)' ><i class='ri-error-warning-line'></i></td>";
+        echo "<td>" . $totalCuti . " Hari</td>";
+        echo "</tr>";
+    }
+}
+
+function getStatusLibur($tanggal)
+{
+    // Mengambil data dari API Hari Libur
+    $dataHariLibur = getHariLibur();
+
+    foreach ($dataHariLibur as $hariLibur) {
+        //Hari Libur sama dengan tanggal lalu ditampilkan tanggal mana saja yang menyediakan hari libur
+        if ($hariLibur->holiday_date == $tanggal) {
+            echo "Libur : $hariLibur->holiday_name"; // tampil hari libur
+            return;
+        }
+    }
+    return "";
+}
+
+function totalTerlambatTahun($userId, $year)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $presensiModel = new PresensiModel();
+
+    $totalKeterlambatan = 0;
+    $totalWaktuTerlambat = 0;
+    $formatWaktuTerlambat = '-';
+
+    $presensiList = $presensiModel->getDataPresensiTahun($userId, $year);
+    foreach ($presensiList as $presensi) {
+        $tahunPresensi = date('Y', strtotime($presensi->tanggal));
+
+        if ($tahunPresensi == $year) {
+            $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));
+            $jamCreatedOn = date('H:i:s', strtotime($presensi->created_on));
+
+
+            // Menghitung selisih waktu dalam menit
+            $selisihWaktu = strtotime($jamCreatedOn) - strtotime($jamTanggal);
+            if ($selisihWaktu > 0) {
+                // Mengkonversi selisih waktu ke menit
+                $selisihMenit = floor($selisihWaktu / 60);
+                $totalKeterlambatan += $selisihMenit;
+                $totalWaktuTerlambat += $selisihMenit;
+
+                // Hitung jumlah jam
+                $totalJam = floor($totalWaktuTerlambat / 60);
+
+                // Hitung jumlah menit sisa setelah mengurangkan jam
+                $totalMenit = $totalWaktuTerlambat  % 60;
+                // $totalMenit += $totalKeterlambatanWFH;
+
+                $formatWaktuTerlambat = $totalJam . " Jam " . $totalMenit . " Menit";
+            }
+        }
+    }
+    return $formatWaktuTerlambat;
+    // dd($totalKeterlambatan);
+}
+
+function totalTidakHadirTahun($userId, $year)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $presensiModel = new PresensiModel();
+    $presensi = $presensiModel->getDataPresensiTahun($userId, $year);
+
+
+    for ($month = 1; $month <= 12; $month++) {
+        $totalTidakHadir = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
+        // dd($totalTidakHadir);
+        $jumlahTotalTidakHadir = $totalTidakHadir;
+    }
+    return $jumlahTotalTidakHadir;
+    // dd($jumlahTotalTidakHadir);
+}
+
+function sisaCutiTahunan($userId, $year)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('KaryawanModel');
+    $ci->load->model('JabatanModel');
+    $ci->load->model('KonfigModel');
+
+    $presensiModel = new PresensiModel();
+    $presensiTahunan = $presensiModel->getDataPresensiTahun($userId, $year);
+    $tidakHadirTahunan = $presensiModel->tidakHadirTahunan($userId, $year);
+    $totalSakit = $presensiModel->hitungTotalSakitTahunan($userId, $year);
+    // dd($tidakHadirTahunan);
+    $karyawanModel = new KaryawanModel();
+    $karyawan = $karyawanModel->getByUserId($userId);
+    if ($karyawan) {
+        $jabatanId = $karyawan->jabatan_id;
+        $cuti = JabatanModel::where('id', $jabatanId)->first();
+        if ($cuti) {
+            $alokasiCuti = $cuti->alokasi_cuti;
+        } else {
+            echo "-";
+        }
+        // dd($jabatanId);
+    } else {
+        echo "-";
+    }
+
+    // Ambil data konfigurasi Sakit
+    $dataSakit = KonfigModel::where('nama', 'sakit')->first();
+    $kontrolCuti = KonfigModel::where('nama', 'cuti_kurang')->first();
+    // Periksa apakah data konfigurasi Sakit ada
+    if ($dataSakit) {
+        // Ambil batas sakit yang telah ditentukan
+        $batasSakit = $dataSakit->nilai;
+        $batasSakitTahunan = $batasSakit * 12;
+
+        $kontrolPenguranganCuti = $kontrolCuti->nilai;
+
+        // Periksa apakah jumlah sakit melebihi batas sakit
+        if ($totalSakit > $batasSakitTahunan) {
+            if ($kontrolPenguranganCuti == 1) {
+                // Kurangi alokasi cuti jika jumlah sakit melebihi batas sakit
+                $alokasiCuti -= 1; //kurangi 1 cuti
+            }
+        }
+    }
+
+    if (empty($tidakHadirTahunan)) {
+        $totalCuti = $alokasiCuti * 12;
+    } else {
+        $totalCuti = $alokasiCuti * 12 - $tidakHadirTahunan;
+    }
+
+    // dd($totalCuti);
+    return $totalCuti;
+}
+
+function sisaCutiBulanan($userId, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+    $ci->load->model('KaryawanModel');
+    $ci->load->model('JabatanModel');
+    $ci->load->model('KonfigModel');
+
+    $presensiModel = new PresensiModel();
+    $presensiBulanan = $presensiModel->getDataPresensiBulan($userId, $month);
+    $tidakHadirBulanan = $presensiModel->tidakHadirBulanan($userId, $month);
+    $totalSakit = $presensiModel->hitungTotalSakitBulanan($userId, $month);
+    // dd($tidakHadirTahunan);
+    $karyawanModel = new KaryawanModel();
+    $karyawan = $karyawanModel->getByUserId($userId);
+    if ($karyawan) {
+        $jabatanId = $karyawan->jabatan_id;
+        $cuti = JabatanModel::where('id', $jabatanId)->first();
+        if ($cuti) {
+            $alokasiCuti = $cuti->alokasi_cuti;
+        } else {
+            echo "-";
+        }
+        // dd($jabatanId);
+    } else {
+        echo "-";
+    }
+
+    $jumlahIzin = 0;
+    foreach ($presensiBulanan as $presensi) {
+        $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+        $jamTidakHadir = strtotime('00:00:00');
+
+        if ($waktuPresensi == $jamTidakHadir) {
+            $jumlahIzin++;
+            $tidakHadirBulanan += $jumlahIzin;
+        }
+    }
+
+    // Ambil data konfigurasi Sakit
+    $dataSakit = KonfigModel::where('nama', 'sakit')->first();
+    $kontrolCuti = KonfigModel::where('nama', 'cuti_kurang')->first();
+    // Periksa apakah data konfigurasi Sakit ada
+    if ($dataSakit) {
+        // Ambil batas sakit yang telah ditentukan
+        $batasSakit = $dataSakit->nilai;
+        $kontrolPenguranganCuti = $kontrolCuti->nilai;
+
+        // Periksa apakah jumlah sakit melebihi batas sakit
+        if ($totalSakit > $batasSakit) {
+            // Kurangi alokasi cuti jika jumlah sakit melebihi batas sakit
+            if ($kontrolPenguranganCuti == 1) {
+                // Kurangi alokasi cuti jika jumlah sakit melebihi batas sakit
+                $alokasiCuti -= 1; // Kurangi 1 cuti
+            }
+        }
+    }
+
+    if (empty($tidakHadirBulanan)) {
+        $totalCuti = $alokasiCuti;
+    } elseif ($tidakHadirBulanan > 4) {
+        $totalCuti = '-';
+    } else {
+        $totalCuti = $alokasiCuti - $tidakHadirBulanan;
+    }
+
+    // dd($totalCuti);
+    return $totalCuti;
+}
+
+function totalWFH($userId, $year)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+
+
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getDataPresensiTahun($userId, $year);
+
+    $totalWFH = 0;
+    foreach ($presensiList as $presensi) {
+        $isWFH = $presensi->is_wfh;
+        if ($isWFH == 1) {
+            $totalWFH++;
+        }
+    }
+    return $totalWFH;
+}
+
+function totalWFHBulanan($userId, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+
+    $presensiModel = new PresensiModel();
+    $presensiList = $presensiModel->getDataPresensiBulan($userId, $month);
+
+    $totalWFH = 0;
+    foreach ($presensiList as $presensi) {
+        $isWFH = $presensi->is_wfh;
+        if ($isWFH == 1) {
+            $totalWFH++;
+        }
+    }
+    return $totalWFH;
+}
+
+function keteranganBulanan($year, $month)
+{
+    $ci = &get_instance();
+    $ci->load->model('PresensiModel');
+
+    //get hari pertama
+    $firstDay = mktime(0, 0, 0, $month, 1, $year);
+
+    // Get angka hari di bulanIni
+    $numDays = date('t', $firstDay);
+
+    // Get nama bulan
+    $monthName = date('F', $firstDay);
+    $indonesianMonthName = getIndonesianMonth($monthName);
+
+    //Hari Libur Nasional
+    $dataLibur = getHariLibur();
+
+    //Data Presensi
+
+    // Ambil daftar karyawan
+    $karyawanModel = new KaryawanModel();
+    $karyawanList = $karyawanModel->getKaryawan();
+
+    // Iterasi melalui setiap karyawan
+    $no = 1;
+
+    foreach ($karyawanList as $karyawan) {
+        $karyawanId = $karyawan->id;
+        $userId = $karyawan->user_id;
+        $presensiModel = new PresensiModel();
+        $presensiList = $presensiModel->getPresensiData($userId, $year, $month);
+    }
+
+    for ($day = 1; $day <= $numDays; $day++) {
+        $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
+        $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
+        // Tanggal saat ini
+        $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
+        // $jamPresensi = strtotime(date('H:i:s', strtotime('08:00:00')));
+        $tanggalLibur = date('Y-m-d', strtotime($currentDate));
+        $tidakHadir = "<span class='text-secondary font-weight-bold'><i class='ri-close-circle-line'></i> Tidak Hadir</span>";
+
+        $keterangan = array();
+        $statusJam = array();
+        foreach ($presensiList as $presensi) {
+            $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+            $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+            // jam perbandingan dengan waktu presensinya
+            $jamPresensi = strtotime('08:00:00');
+            $isWFH = $presensi->is_wfh; // Ambil data is_wfh
+
+            if ($isWeekday && $tanggalPresensi == $currentDate) {
+                // Presensi ditemukan untuk tanggal ini
+                $foundPresensi = true;
+                $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+
+                if ($waktuPresensi <= $jamPresensi) {
+                    $keterangan[] = "<span class='text-success font-weight-bold'><i class='ri-checkbox-circle-line'></i> Berhadir</span>";
+                    $statusJam[] = "<span class='text-success font-weight-bold'>Jam " .  date('H:i', $waktuPresensi) . " Pagi <i class='ri-checkbox-circle-line'></i></span>";
+                    // Ubah $tidakHadir menjadi null jika ada data presensi
+                    $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
+                } elseif ($waktuPresensi > $jamPresensi) {
+                    $keterangan[] = "<span class='text-warning font-weight-bold'><i class='ri-error-warning-line'></i> Terlambat</span>";
+                    $statusJam[] = "<span class='text-warning font-weight-bold'>Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit) <i class='ri-error-warning-line'></i></span>";
+                    $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
+                }
+                break;
+            }
+            if ($isWeekday && $presensiCreated == $currentDate) {
+                $tidakHadir = null;
+            }
+        }
+
+        // Mendapatkan status hari libur
+        foreach ($dataLibur as $libur) {
+            if ($libur->holiday_date == $tanggalLibur) {
+                $keterangan[] = "<span class='text-danger font-weight-bold'>Libur Nasional</span>";
+                $tidakHadir = null;
+                break;
+            } else {
+                $tooltip = '';
+            }
+        }
+
+        //ISI TABLE
+        if (strtotime($currentDate) <= strtotime(date('Y-m-d'))) {
+            echo "<tr>";
+            if ($day == $isWeekday) {
+                echo "<td>$day $indonesianMonthName $year</td>";
+                // Tampilkan status sesuai dengan nilai $tidakHadir
+                echo "<td>";
+                if ($tidakHadir !== null) {
+                    echo $tidakHadir;
+                } elseif ($libur->holiday_date == $tanggalLibur) {
+                    echo implode("  ", $keterangan);
+                } else {
+                    echo implode("<br>", $keterangan);
+                }
+                echo "</td>";
+                echo "<td >";
+                if (!empty($statusJam)) {
+                    echo implode(", ", $statusJam);
+                } else {
+                    echo "-";
+                }
+                echo "</td>";
+            }
+            echo "</tr>";
+        }
+    }
+}
+
+function keteranganRekapBulanan($userId, $year, $month)
 {
     $ci = &get_instance();
     $ci->load->model('PresensiModel');
@@ -686,6 +1894,8 @@ function generateDataBodyTable($year, $month)
     //Data Presensi
     $presensiModel = new PresensiModel();
 
+    // mengambil data presensi per tiap bulan/tahun
+    $presensiList = $presensiModel->getPresensiData($userId, $year, $month);
 
     for ($day = 1; $day <= $numDays; $day++) {
         // Determine if the day is a Sunday
@@ -693,23 +1903,67 @@ function generateDataBodyTable($year, $month)
 
         $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
         $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
-
+        // dd($day);
         // Tanggal saat ini
         $currentDate = date('Y-m-d', mktime(0, 0, 0, $month, $day, $year));
 
         // $jamPresensi = strtotime(date('H:i:s', strtotime('08:00:00')));
         $tanggalLibur = date('Y-m-d', strtotime($currentDate));
-        $tidakHadir = "Tidak Hadir";
-
+        $tidakHadir = "<span class='text-secondary font-weight-bold'><i class='ri-close-circle-line'></i> Tidak Hadir</span>";
+        $tidakHadirSakit = "<span class='text-secondary font-weight-bold'><i class='ri-hospital-line'></i> Sakit</span>";
         $keterangan = array();
         $statusJam = array();
 
+        foreach ($presensiList as $presensi) {
+            $tanggalPresensi = date('Y-m-d', strtotime($presensi->tanggal));
+            $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
+            // jam perbandingan dengan waktu presensinya
+            $jamPresensi = strtotime('08:00:00');
+            $jamTidakHadir = strtotime('00:00:00');
+            $isWFH = $presensi->is_wfh; // Ambil data is_wfh
+            $isSakit = $presensi->is_sakit;
 
+            if ($isWeekday && $tanggalPresensi == $currentDate) {
+                // Presensi ditemukan untuk tanggal ini
+                $foundPresensi = true;
+                $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
+                if ($waktuPresensi == $jamTidakHadir) {
+                    if ($isSakit) {
+                        $keterangan[] = $tidakHadirSakit;
+                        $tidakHadir = null;
+                    }
+                }
+
+                if ($waktuPresensi <= $jamPresensi && $waktuPresensi != $jamTidakHadir) {
+                    $keterangan[] = "<span class='text-success font-weight-bold'><i class='ri-checkbox-circle-line'></i> Berhadir</span>";
+                    $statusJam[] = "<span class='text-success font-weight-bold'>Jam " .  date('H:i', $waktuPresensi) . " Pagi <i class='ri-checkbox-circle-line'></i></span>";
+                    // Ubah $tidakHadir menjadi null jika ada data presensi
+                    $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
+                } elseif ($waktuPresensi > $jamPresensi) {
+                    $keterangan[] = "<span class='text-warning font-weight-bold'><i class='ri-error-warning-line'></i> Terlambat</span>";
+                    $statusJam[] = "<span class='text-warning font-weight-bold'>Terlambat (" . floor(($waktuPresensi - $jamPresensi) / 60) . "menit) <i class='ri-error-warning-line'></i></span>";
+                    $tidakHadir = null;
+                    // Tambahkan keterangan WFH jika is_wfh bernilai 1
+                    if ($isWFH == 1) {
+                        $keterangan[] = "<span class='text-info font-weight-bold'><i class='ri-home-4-line'></i> WFH</span>";
+                    }
+                }
+                break;
+            }
+            if ($isWeekday && $presensiCreated == $currentDate) {
+                $tidakHadir = null;
+            }
+        }
 
         // Mendapatkan status hari libur
         foreach ($dataLibur as $libur) {
             if ($libur->holiday_date == $tanggalLibur) {
-                $keterangan[] = 'Libur Nasional';
+                $keterangan[] = "<span class='text-danger font-weight-bold'>Libur Nasional</span>";
+                $tidakHadir = null;
                 break;
             } else {
                 $tooltip = '';
@@ -717,31 +1971,66 @@ function generateDataBodyTable($year, $month)
         }
 
         //ISI TABLE
-        echo "<tr>";
-        if ($day == $isWeekday) {
-            echo "<td>$day $indonesianMonthName $year</td>";
-            // Tampilkan status sesuai dengan nilai $tidakHadir
-
+        if (strtotime($currentDate) <= strtotime(date('Y-m-d'))) {
+            echo "<tr>";
+            if ($day == $isWeekday) {
+                echo "<td>$day $indonesianMonthName $year</td>";
+                // Tampilkan status sesuai dengan nilai $tidakHadir
+                echo "<td>";
+                if ($tidakHadir !== null) {
+                    echo $tidakHadir;
+                } elseif ($libur->holiday_date == $tanggalLibur) {
+                    echo implode("  ", $keterangan);
+                } else {
+                    echo implode("<br>", $keterangan);
+                }
+                echo "</td>";
+                echo "<td >";
+                if (!empty($statusJam)) {
+                    echo implode(", ", $statusJam);
+                } else {
+                    echo "-";
+                }
+                echo "</td>";
+                echo "<td>";
+                echo "<button type='button' class='btn btn-sm btn-info dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+                        Edit
+                    </button>
+                    <div class='dropdown-menu ' style='z-index: 1000;'>
+                        <a class='dropdown-item text-info' data-toggle='modal' data-target='#modalJamMasuk$day-$userId'> <svg xmlns='http://www.w3.org/2000/svg' width='18' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                <path stroke-linecap='round' stroke-linejoin='round' d='M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10' />
+                            </svg>Jam Masuk</a>
+                            <div class='dropdown-divider'></div>
+                        <a class='dropdown-item text-info' data-toggle='modal' data-target='#modalWFH$day-$userId'> <svg xmlns='http://www.w3.org/2000/svg' width='18' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                        <path stroke-linecap='round' stroke-linejoin='round' d='M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25' />
+                            </svg>WFH</a>
+                            <div class='dropdown-divider'></div>
+                        <a class='dropdown-item text-info' data-toggle='modal' data-target='#modalKehadiran$day-$userId'> <svg xmlns='http://www.w3.org/2000/svg' width='18' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                        <path stroke-linecap='round' stroke-linejoin='round' d='M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z' />
+                            </svg>Kehadiran</a>
+                    </div>
+                </div>";
+                echo "</td>";
+            }
             echo "</tr>";
         }
     }
 }
 
-
-function getStatusLibur($tanggal)
+function checkBoxWFH($isWfh)
 {
-    // Mengambil data dari API Hari Libur
-    $dataHariLibur = getHariLibur();
-
-    foreach ($dataHariLibur as $hariLibur) {
-        //Hari Libur sama dengan tanggal lalu ditampilkan tanggal mana saja yang menyediakan hari libur
-        if ($hariLibur->holiday_date == $tanggal) {
-            echo "Libur : $hariLibur->holiday_name"; // tampil hari libur
-            return;
-        }
+    $ci = &get_instance();
+    // $presensiModel = new PresensiModel();
+    $presensi = PresensiModel::where('is_wfh', $isWfh)->first();
+    // dd($presensi);
+    if ($presensi) {
+        return 'checked="checked"';
+    } else {
+        return '';
     }
-    return "";
 }
+
+
 
 
 function qrcode($data, $filename)

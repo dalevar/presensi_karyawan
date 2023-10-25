@@ -5,17 +5,15 @@
                 <div class="d-flex flex-wrap justify-content-between align-items-center">
                     <h4 class="font-weight-bold"><?= $title ?></h4>
                 </div>
-
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb d-flex flex-wrap">
+                        <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= $title; ?></li>
+                    </ol>
+                </nav>
                 <div class="col-md-12 mt-4">
                     <div class="card">
                         <div class="card-body">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb d-flex flex-wrap">
-                                    <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>"><i class="ri-home-4-line mr-1 float-left"></i>Home</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page"><?= $title; ?></li>
-                                </ol>
-                            </nav>
-
                             <button type="button" class="btn btn-primary mb-2 float-right" data-toggle="modal" data-target=".bd-example-modal-xl">Tambah</button>
 
                             <?php if ($this->session->flashdata('berhasil')) : ?>

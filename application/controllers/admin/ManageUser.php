@@ -25,10 +25,12 @@ class ManageUser extends CI_Controller
             $data['user'] = $this->session->userdata('user_data');
 
             $dataKaryawan = $this->KaryawanModel->getKaryawan();
+            $data['karyawan'] = $dataKaryawan;
+            // $data['karyawan'] = KaryawanModel::all();
 
             $this->load->view('template/header', $data);
             $this->load->view('template/sidebar');
-            $this->load->view('Admin/manageuser', ['karyawan' => $dataKaryawan], $data);
+            $this->load->view('admin/manageUser', $data);
             $this->load->view('template/footer');
         }
     }
@@ -99,49 +101,6 @@ class ManageUser extends CI_Controller
             redirect('admin/manageuser');
         }
     }
-
-
-    // public function editOtorisasi($id)
-    // {
-    //     $this->form_validation->set_rules('password', 'Password', 'required|matches[confirm_password]');
-    //     $this->form_validation->set_rules('confirm_password', 'Confirm Password', 'required|matches[password]');
-    //     // Pastikan ID pengguna tidak kosong
-    //     if (!empty($id)) {
-    //         $now = date('Y-m-d H:i:s');
-
-    //         $userModel = new UserModel();
-    //         $newPassword = $this->input->post('new_password');
-
-    //         // Hash kata sandi baru (jika perlu)
-    //         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-
-    //         // Temukan pengguna berdasarkan ID
-    //         $user = $userModel->find($id);
-    //         if ($user) {
-    //             // Simpan waktu pembaharuan
-    //             $user->update_on = $now;
-
-    //             // Hanya perbarui kata sandi jika ada kata sandi baru
-    //             if (!empty($newPassword)) {
-    //                 $userModel->password = $hashedPassword;
-    //             }
-
-    //             // Gunakan Eloquent untuk memperbarui kata sandi
-    //             $userModel->where('id', $id)->update(['password' => $hashedPassword]);
-    //             $user->save();
-
-    //             //jika berhasil
-    //             $this->session->set_flashdata('berhasil', 'Data Karyawan Berhasil diperbarui');
-    //             redirect('admin/manageuser');
-    //         } else {
-    //             $this->session->set_flashdata('gagal', 'Data Karyawan tidak ditemukan atau pembaruan gagal');
-    //             redirect('admin/manageuser');
-    //         }
-    //     } else {
-    //         $this->session->set_flashdata('gagal', 'Data Karyawan tidak ditemukan atau pembaruan gagal');
-    //         redirect('admin/manageuser');
-    //     }
-    // }
 
     public function hapusKaryawan($id)
     {

@@ -13,6 +13,14 @@ class JabatanModel extends Eloquent
         return $this->hasMany(KaryawanModel::class, 'jabatan_id');
     }
 
+    public function getAlokasiCuti($jabatan_id)
+    {
+        $cuti = $this->where('id', $jabatan_id)
+            ->first();
+    }
+
+
+
     public function updateJabatan($id, $data)
     {
         // Cari data Jabatan berdasarkan ID
