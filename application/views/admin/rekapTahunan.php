@@ -596,12 +596,10 @@ foreach ($karyawanList as $karyawan) {
 <script>
     function updateRekapBulanan() {
         var selectedMonth = document.getElementById('month').value;
-
         window.location.href = 'rekapTahunan?month=' + selectedMonth;
     }
 
     function updateRekapTahunan() {
-
         var selectedYear = document.getElementById('year').value;
         window.location.href = 'rekapTahunan?year=' + selectedYear;
     }
@@ -660,5 +658,27 @@ foreach ($karyawanList as $karyawan) {
             var targetModal = $(this).attr('data-target');
             $(targetModal).modal('show');
         });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Tambahkan event listener untuk tombol "Detail" pada setiap bulan
+        <?php for ($month = 1; $month <= 12; $month++) { ?>
+            $("#toggleDetailButton<?php echo $month; ?>").click(function() {
+                $("#statusList<?php echo $month; ?>").slideToggle("slow"); // Menampilkan atau menyembunyikan elemen "Detail"
+            });
+
+            $("#waktuDetailButton<?php echo $month; ?>").click(function() {
+                $("#waktu<?php echo $month; ?>").slideToggle("slow"); // Menampilkan atau menyembunyikan elemen "Detail"
+            });
+
+            $("#WFHDetailButton<?php echo $month; ?>").click(function() {
+                $("#WFH<?php echo $month; ?>").slideToggle("slow"); // Menampilkan atau menyembunyikan elemen "Detail"
+            });
+            $("#cutiDetailButton<?php echo $month; ?>").click(function() {
+                $("#cuti<?php echo $month; ?>").slideToggle("slow"); // Menampilkan atau menyembunyikan elemen "Detail"
+            });
+        <?php } ?>
     });
 </script>

@@ -119,7 +119,39 @@ class Dashboard extends CI_Controller
             // dd($terlambat);
             $data['totalTerlambatTahunan'] = $terlambat;
 
+            // $lastAttendanceDate = $presensi->getLastAttendanceDate($userId);
+            // // dd($lastAttendanceDate);
+            // $secondLastAttendanceDate = $presensi->getSecondLastAttendanceDate($userId);
+            // // dd($secondLastAttendanceDate);
+            // // $tanggalAwal = $lastAttendanceDate;
+            // // // $tanggalAwal = date('Y-m-d', strtotime($lastAttendanceDate . ' + 1 day'));
+            // // // $tanggalAkhir = date('Y-m-d', strtotime($lastAttendanceDate . ' + 7 days'));
+            // // $tanggalAkhir = date('Y-m-d', strtotime('-1 day'));
+            // if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
+            //     // Hitung tanggal awal (tanggal terakhir absensi)
+            //     $tanggalAwal = $secondLastAttendanceDate;
+            //     // $tanggalAkhir = $lastAttendanceDate;
+            //     // dd($tanggalAwal);
+            //     // Hitung tanggal akhir (hari ini)
+            //     $tanggalAkhir = date('Y-m-d');
+            //     // dd($tanggalAkhir);
 
+            //     // Lakukan loop sesuai tanggal
+            //     $startDate = new DateTime($tanggalAwal);
+            //     $endDate = new DateTime($tanggalAkhir);
+
+            //     $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
+            //     dd($gapTanggal);
+            //     // dd($endDate);
+            //     // dd($startDate);
+            //     while ($startDate <= $endDate) {
+            //         $tanggal = $startDate->format('Y-m-d');
+            //         $created_on = $tanggal;
+            //         // dd($tanggal);
+            //         // dd($created_on);
+            //         $startDate->add(new DateInterval('P1D'));
+            //     }
+            // }
 
             // $hitung = $presensi->hitungTidakHadirBulanIni($userId, $tanggal, $bulanIni, $tahun);
             // $data['hitungBulanIni'] = $hitung;

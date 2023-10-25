@@ -213,6 +213,7 @@
                                                     <h4 class="mb-2 font-weitght-bold">Total Terlambat</h4>
                                                     <div class="justify-content-start align-items-center">
                                                         <h5 class="mb-2 font-weight-bold  text-secondary">
+
                                                             <span class="text-warning"><?= $totalTerlambatBulanan ?> </span>
                                                         </h5>
                                                     </div>

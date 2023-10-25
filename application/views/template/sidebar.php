@@ -67,7 +67,7 @@
 						<span class="ml-2">Konfigurasi</span>
 					</a>
 				</li>
-				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'ManageUser' || $this->uri->segment(2) == 'manageUser' ? 'active' : '' ?>">
+				<li class=" sidebar-layout <?= $this->uri->segment(2) == 'ManageUser' || $this->uri->segment(2) == 'manageUser' || $this->uri->segment(2) == 'manageuser'  ? 'active' : '' ?>">
 					<a href="<?= base_url('admin/ManageUser') ?>" class="svg-icon">
 						<i class="">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">

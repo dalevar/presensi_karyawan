@@ -793,7 +793,13 @@ function generateDataRekapTahunan($userId, $year)
             $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir;
         }
         $jumlahTotalSakit[$month] = $totalSakit;
+        $dataSakit = KonfigModel::where('nama', 'sakit')->first();
+        $dataSakitPenguranganCuti = KonfigModel::where('nama', 'cuti_kurang')->first();
+        $batasSakit = $dataSakit->nilai;
+        $penguranganCutiSakit = $dataSakitPenguranganCuti->nilai;
+
         $alokasiCuti = $alokasiCuti -= $totalSakit;
+        // dd($totalSakit);
 
 
         //Tidak Hadir Terlambat
@@ -834,6 +840,7 @@ function generateDataRekapTahunan($userId, $year)
 
         echo "<tr>";
         $totalCuti[$month] = $alokasiCuti;
+        // dd($alokasiCuti);
 
         // Loop melalui data presensi per bulan
         foreach ($presensiList as $presensi) {
@@ -888,6 +895,18 @@ function generateDataRekapTahunan($userId, $year)
                                 $totalKeterlambatan -= 480;
                             }
                         }
+                    } elseif ($waktuPresensi == $jamTidakHadir && !$isSakit) {
+                        if ($totalCuti > 0) {
+                            $totalCuti[$monthPresensi]--;
+                        }
+                    }
+
+                    if ($penguranganCutiSakit == 1) {
+                        if ($isSakit == 1) {
+                            if ($totalCuti > 0) {
+                                $totalCuti[$monthPresensi]--;
+                            }
+                        }
                     }
 
                     if ($isWFH == 1) {
@@ -937,7 +956,7 @@ function generateDataRekapTahunan($userId, $year)
 
         if ($totalPresensiBulan[$month] > 0) {
             echo "<td>" . $totalHariKerja[$month] . " Hari Kerja</td>";
-            echo "<td><a type='button' class='btn-gc-cell' id='btn-keterangan' data-month='$month'>$bulanText[$month]</a></td>";
+            echo "<td><a type='button' class='btn-gc-cell text-info' id='btn-keterangan' data-month='$month'>$bulanText[$month]</a></td>";
             echo "<td>Total Presensi: " . $totalPresensiBulan[$month] . "</td>";
             echo "<td>";
             echo "Total Tidak Hadir : $jumlahSeluruhTotalTidakHadir[$month]";
@@ -976,7 +995,7 @@ function generateDataRekapTahunan($userId, $year)
 </ul>";
             echo "</td>";
             echo "<td>";
-            if (empty($totalCuti[$month]) || $totalCuti[$month] < 4) {
+            if ($totalCuti[$month] > $batasSakit) {
                 echo "Total Cuti: 0 Hari";
             } else {
                 echo "Total Cuti: " . $totalCuti[$month] . " Hari";
@@ -1144,13 +1163,15 @@ function generateRekapBulanan($year, $month)
         $totalSakit = $presensiModel->TotalSakitBulanTahun($userId, $year, $month);
         // dd($totalTidakHadir);
 
-        $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
-        // dd($cuti);
-        if ($cuti) {
-            $alokasiCuti = $cuti->alokasi_cuti;
-        } else {
-            echo "-";
-        }
+        // $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
+        // // dd($cuti);
+        // if ($cuti) {
+        //     $alokasiCuti = $cuti->alokasi_cuti;
+        // } else {
+        //     echo "-";
+        // }
+
+        $alokasiCuti = sisaCutiBulanan($userId, $month);
 
         $totalKehadiran = 0;
         $jumlahTotalTidakHadir = $totalTidakHadir;
@@ -1276,7 +1297,7 @@ function generateRekapBulanan($year, $month)
         // Output data rekap karyawan
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
-        echo "<td><button type='button' class='btn toggleDetailButton inner-shadow' style='text-decoration: none; transition: text-decoration 0.3s; ' data-toggle='collapse' data-target='#karyawanDetail$no'>" . $karyawan->nama . "</button></td>";
+        echo "<td><a class='text-info'><button type='button' class='btn toggleDetailButton text-info' data-toggle='collapse' data-target='#karyawanDetail$no'>" . $karyawan->nama . "</button></a></td>";
         echo "<td>" . $karyawan->jabatan . "</td>";
         echo "<td> Total Berhadir : " . $totalKehadiran . " Hari</td>";
         echo "<td>";
@@ -1355,12 +1376,15 @@ function generateRekapTahunan($year, $month)
             }
         }
 
-        $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
-        if ($cuti) {
-            $alokasiCuti = $cuti->alokasi_cuti;
-        } else {
-            echo "Tidak Ada";
-        }
+        // $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
+        // if ($cuti) {
+        //     $alokasiCuti = $cuti->alokasi_cuti;
+        // } else {
+        //     echo "Tidak Ada";
+        // }
+
+        $alokasiCuti = sisaCutiTahunan($userId, $year);
+
 
         $totalKehadiran = 0;
         $jumlahTotalTidakHadir = $totalTidakHadir;
@@ -1473,13 +1497,13 @@ function generateRekapTahunan($year, $month)
         }
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
-        echo "<td><button type='button' class='btn toggleDetailButtonTahunan' data-toggle='collapse' data-target='#karyawanDetailTahunan$no'>" . $karyawan->nama . "</button></td>";
+        echo "<td><a class='text-info'><button type='button' class='btn toggleDetailButton text-info' data-toggle='collapse' data-target='#karyawanDetailTahunan$no'>" . $karyawan->nama . "</button></a></td>";
         echo "<td>" . $karyawan->jabatan . "</td>";
         echo "<td> Total Berhadir : " . $totalKehadiran . " Hari</td>";
         echo "<td>";
         echo "$jumlahTotalTidakHadir Hari";
-        echo "<button class='btn btn-sm text-danger p-0' data-toggle='collapse' data-target='#statusListTahunan$no'><i class='ri-error-warning-line'></i> Detail</button>";
-        echo "<ul class='list-group' id='statusListTahunan$no' style='display: none'>
+        echo "<button class='btn btn-sm text-danger p-0' data-toggle='collapse' data-target='#statusListTahunan$month'><i class='ri-error-warning-line'></i> Detail</button>";
+        echo "<ul class='list-group' id='statusListTahunan$month' style='display: none'>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
                Tidak Hadir
                <span class='badge badge-danger badge-pill'>$totalTidakHadir</span>
@@ -1705,7 +1729,7 @@ function sisaCutiBulanan($userId, $month)
 
     if (empty($tidakHadirBulanan)) {
         $totalCuti = $alokasiCuti;
-    } elseif ($tidakHadirBulanan > 4) {
+    } elseif ($tidakHadirBulanan > $batasSakit) {
         $totalCuti = '-';
     } else {
         $totalCuti = $alokasiCuti - $tidakHadirBulanan;
@@ -2030,7 +2054,27 @@ function checkBoxWFH($isWfh)
     }
 }
 
+function countTanggal($tanggalAwal, $tanggalAkhir)
+{
+    $date1 = new DateTime($tanggalAwal);
+    $date2 = new DateTime($tanggalAkhir);
 
+    $interval = new DateInterval('P1D'); // P1D adalah interval 1 hari
+    $dateRange = new DatePeriod($date1, $interval, $date2);
+
+    $count = 0;
+
+    foreach ($dateRange as $date) {
+        $dayOfWeek = $date->format('N'); // Mendapatkan hari dalam format ISO (1 = Senin, 7 = Minggu)
+
+        // Jika bukan hari Minggu (7), tambahkan ke hitungan
+        if ($dayOfWeek != 7) {
+            $count++;
+        }
+    }
+
+    return $count;
+}
 
 
 function qrcode($data, $filename)

@@ -49,6 +49,22 @@ class PresensiModel extends Eloquent
         }
     }
 
+    public function getSecondLastAttendanceDate($userId)
+    {
+        return $this->where('user_id', $userId)
+            ->orderBy('tanggal', 'desc')
+            ->offset(1) // Ini akan mengabaikan record terakhir
+            ->limit(1) // Ini akan mengambil satu record
+            ->value('tanggal');
+    }
+
+
+    public function getLastAttendanceDate($userId)
+    {
+        return $this->where('user_id', $userId)
+            ->orderBy('tanggal', 'desc')
+            ->value('tanggal');
+    }
 
     public function getPresensiHariSebelumnya($userId)
     {
@@ -256,7 +272,7 @@ class PresensiModel extends Eloquent
 
         $totalKeterlambatan = 0;
         $totalWaktuTerlambat = 0;
-        $formatWaktuTerlambat = '';
+        $formatWaktuTerlambat = '-';
 
         foreach ($presensiList as $presensi) {
             $jamTanggal = date('H:i:s', strtotime($presensi->tanggal));

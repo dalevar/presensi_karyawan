@@ -142,19 +142,19 @@
                         <?= form_error('tingkat_pendidikan', '<small class="text-danger">', '</small>') ?>
                     </div>
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-12">
                             <div class="form-group">
                                 <label for="" class="h6">Catatan</label>
                                 <textarea name="catatan" id="" rows="2" class="form-control"></textarea>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <!-- <div class="col-md-2">
                             <label for="" class="h6">Role</label>
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="customCheck5">
                                 <label class="custom-control-label" for="customCheck5">Admin</label>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
 
             </div>

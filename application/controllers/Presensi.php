@@ -56,42 +56,6 @@ class Presensi extends CI_Controller
             $presensi->is_wfh = $is_wfh;
             $presensi->is_sakit = $is_sakit;
             $presensi->created_on = $created_on;
-            // $presensi->save();
-            // if ($presensi->save()) {
-            //     if ($presensi->id) {
-            //         // $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
-            //         // $month = isset($_GET['month']) ? $_GET['month'] : date('n');
-            //         // $presensiData = $presensi->getPresensiData($user_id, $year, $month);
-            //         // $latestPresensi = PresensiModel::where('user_id', $user_id)
-            //         //     ->orderBy('created_on', 'desc')
-            //         //     ->first();
-            //         $presensiData = $presensi->getPresensiHariSebelumnya($user_id);
-            //         if (!empty($presensiData)) {
-            //             // $presensi = $presensiData[0];
-
-            //             $tanggalHariSebelumnya = date('Y-m-d', strtotime('-1 day'));
-            //             $currentDate = date('Y-m-d');
-            //             $tanggalPresensi = date('Y-m-d', strtotime($presensi->created_on));
-
-            //             if ($tanggalPresensi == $tanggalHariSebelumnya) {
-            //                 $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk');
-            //                 redirect('user/dashboard');
-            //             } else if ($tanggalPresensi < $tanggalHariSebelumnya) {
-            //                 $this->session->set_flashdata('pemberitahuan', 'SAKIT');
-            //                 redirect('user/dashboard');
-            //             }
-
-            //             // if ($tanggalPresensi < $tanggalHariSebelumnya) {
-            //             //     $this->session->set_flashdata('pemberitahuan', 'SAKIT');
-            //             //     redirect('user/dashboard');
-            //             // }
-
-            //         } else {
-            //             $this->session->set_flashdata('gagal', 'Data Anda tidak ada');
-            //             redirect('user/dashboard');
-            //         }
-            //     }
-            // }
 
             $presensiData = $presensi->getPresensiHariSebelumnya($user_id);
             if (!empty($presensiData)) {
@@ -145,29 +109,44 @@ class Presensi extends CI_Controller
             //     $tanggal = $tanggalHari;
             // }
 
-            $tanggal = date('Y-m-d', strtotime('-1 day'));
-            $created_on = $tanggal;
+            // $tanggal = date('Y-m-d', strtotime('-1 day'));
+            // $created_on = $tanggal;
 
-            $presensi = new PresensiModel();
-            $presensi->user_id = $user_id;
-            $presensi->tanggal = $tanggal;
-            $presensi->created_by = $created_by;
-            $presensi->is_wfh = $is_wfh;
-            $presensi->is_sakit = $is_sakit;
-            $presensi->created_on = $created_on;
+            $presensiModel = new PresensiModel();
+            $lastAttendanceDate = $presensiModel->getLastAttendanceDate($user_id);
+            $secondLastAttendanceDate = $presensiModel->getSecondLastAttendanceDate($user_id);
+            if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
 
+                $tanggalAkhir = date('Y-m-d');
 
-            if ($presensi->save()) {
-                $response = ['success' => true, 'message' => 'Data presensi telah berhasil dimasukkan.'];
-            } else {
-                $response = ['success' => false, 'message' => $presensi->errors()];
+                $tanggalAwal = $secondLastAttendanceDate;
+                // $tanggalAkhir = $lastAttendanceDate;
+
+                $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
+                for ($i = 0; $i <= $gapTanggal; $i++) {
+                    $tanggal = date('Y-m-d', strtotime("-$i day"));
+                    $created_on = date('Y-m-d', strtotime("-$i day"));
+
+                    $presensi = new PresensiModel();
+                    $presensi->user_id = $user_id;
+                    $presensi->tanggal = $tanggal;
+                    $presensi->created_by = $created_by;
+                    $presensi->is_wfh = $is_wfh;
+                    $presensi->is_sakit = $is_sakit;
+                    $presensi->created_on = $created_on;
+
+                    if ($presensi->save()) {
+                        $response = ['success' => true, 'message' => 'Data presensi telah berhasil dimasukkan.'];
+                    } else {
+                        $response = ['success' => false, 'message' => $presensi->errors()];
+                    }
+                }
             }
         } else {
             // Handle kesalahan jika data tidak sesuai
             $response = ['success' => false, 'message' => 'Data tidak sesuai atau tidak lengkap'];
             echo json_encode($response);
         }
-
         // Keluarkan respons dalam format JSON
         echo json_encode($response);
     }
@@ -185,34 +164,52 @@ class Presensi extends CI_Controller
         if (is_array($absen) && isset($absen['user_id'])) {
             $user_id = $absen['user_id'];
             $created_by = $filename;
+            $presensiModel = new PresensiModel();
+            $lastAttendanceDate = $presensiModel->getLastAttendanceDate($user_id);
+            $secondLastAttendanceDate = $presensiModel->getSecondLastAttendanceDate($user_id);
+            if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
+                // Hitung tanggal awal (tanggal terakhir absensi)
+                // $tanggalAwal = $lastAttendanceDate;
+                // $tanggalAwal = date('Y-m-d', strtotime($lastAttendanceDate . ' + 1 day'));
+                // // Hitung tanggal akhir (hari setelah tanggal terakhir absensi)
+                // $tanggalAkhir = date('Y-m-d', strtotime('-1 day'));
 
-            $tanggal = date('Y-m-d', strtotime('-1 day'));
-            $created_on = date('Y-m-d', strtotime('-1 day'));
+                // $tanggalAwal = $lastAttendanceDate;
+                $tanggalAkhir = date('Y-m-d');
 
-            $presensi = new PresensiModel();
-            $presensi->user_id = $user_id;
-            $presensi->tanggal = $tanggal;
-            $presensi->created_by = $created_by;
-            $presensi->is_wfh = $is_wfh;
-            $presensi->is_sakit = $is_sakit;
-            $presensi->created_on = $created_on;
+                $tanggalAwal = $secondLastAttendanceDate;
+                // $tanggalAkhir = $lastAttendanceDate;
+
+                $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
+                for ($i = 0; $i <= $gapTanggal; $i++) {
+                    $tanggal = date('Y-m-d', strtotime("-$i day"));
+                    $created_on = date('Y-m-d', strtotime("-$i day"));
 
 
-            if ($presensi->save()) {
-                $response = ['success' => true, 'message' => 'Data presensi telah berhasil dimasukkan.'];
-            } else {
-                $response = ['success' => false, 'message' => $presensi->errors()];
+                    $presensi = new PresensiModel();
+                    $presensi->user_id = $user_id;
+                    $presensi->tanggal = $tanggal;
+                    $presensi->created_by = $created_by;
+                    $presensi->is_wfh = $is_wfh;
+                    $presensi->is_sakit = $is_sakit;
+                    $presensi->created_on = $created_on;
+
+
+                    if ($presensi->save()) {
+                        $response = ['success' => true, 'message' => 'Data presensi telah berhasil dimasukkan.'];
+                    } else {
+                        $response = ['success' => false, 'message' => $presensi->errors()];
+                    }
+                }
             }
         } else {
             // Handle kesalahan jika data tidak sesuai
             $response = ['success' => false, 'message' => 'Data tidak sesuai atau tidak lengkap'];
             echo json_encode($response);
         }
-
         // Keluarkan respons dalam format JSON
         echo json_encode($response);
     }
-
 
     // public function Presensi()
     // {

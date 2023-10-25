@@ -186,106 +186,6 @@
     </div>
 </div>
 
-<?php
-// foreach ($presensiList as $presensi) {
-//     $tanggalHariSebelumnya = date('Y-m-d', strtotime('-1 day'));
-//     // dd($tanggalHariSebelumnya);
-//     $tanggalPresensi = date('Y-m-d', strtotime($presensi->created_on));
-//     // $latestPresensi = end($presensiData);
-
-//     // dd($latestPresensi);
-//     // // dd($tanggalPresensi);
-//     // $currentDate = date('Y-m-d');
-//     // dd($currentDate);
-
-//     // if ($tanggalPresensi == $tanggalHariSebelumnya) {
-//     //     echo "<div class='modal fade' id='exampleModalCenter' tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true'>
-//     //     <div class='modal-dialog modal-dialog-centered' role='document'>
-//     //         <div class='modal-content'>
-//     //             <div class='modal-header'>
-//     //                 <h5 class='modal-title' id='exampleModalCenterTitle'>PRESENSI</h5>
-//     //                 <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
-//     //                     <span aria-hidden='true'>&times;</span>
-//     //                 </button>
-//     //             </div>
-//     //             <div class='modal-footer d-flex flex-wrap justify-content-between'>
-//     //                 <button class='btn' type='submit'><a class='btn btn-primary' href='" .  site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $karyawan->id . '&is_wfh=0' . '&is_sakit=0') . "'>
-//     //                         <span class='font-weight-bold'>WFO</span>
-//     //                     </a>
-//     //                 </button>
-//     //                 <button class='btn' type='submit'><a class='btn btn-primary' href='" . site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $karyawan->id . '&is_wfh=1' . '&is_sakit=0') . "'>
-//     //                         <span class='font-weight-bold'>WFH</span>
-//     //                     </a>
-//     //                 </button>
-//     //             </div>
-//     //         </div>
-//     //     </div>
-//     // </div>";
-//     // } else if ($tanggalPresensi != $tanggalHariSebelumnya) {
-//     //     echo "<div class='modal fade' id='exampleModalCenter' tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true'>
-//     //     <div class='modal-dialog modal-dialog-centered' role='document'>
-//     //         <div class='modal-content'>
-//     //             <div class='modal-header'>
-//     //                 <h5 class='modal-title' id='exampleModalCenterTitle'>PRESENSI</h5>
-//     //                 <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
-//     //                     <span aria-hidden='true'>&times;</span>
-//     //                 </button>
-//     //             </div>
-//     //             <div class='modal-footer d-flex flex-wrap justify-content-between'>
-//     //                 <button class='btn' type='submit'><a class='btn btn-primary' href='" .  site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $karyawan->id . '&is_wfh=0' . '&is_sakit=1') . "'>
-//     //                         <span class='font-weight-bold'>SAKIT</span>
-//     //                     </a>
-//     //                 </button>
-//     //                 <button class='btn' type='submit'><a class='btn btn-primary' href='" . site_url('presensi?data=' . base64_encode($absen) . '&filename=' . $karyawan->id . '&is_wfh=0' . '&is_sakit=0') . "'>
-//     //                         <span class='font-weight-bold'>TIDAK</span>
-//     //                     </a>
-//     //                 </button>
-//     //             </div>
-//     //         </div>
-//     //     </div>
-//     // </div>";
-//     // }
-// }
-?>
-
-
-
-// <script>
-    //     function updateCalendar() {
-    //         var selectedMonth = document.getElementById('month').value;
-    //         var selectedYear = document.getElementById('year').value;
-
-    //         // Lakukan panggilan AJAX ke server untuk mendapatkan data presensi baru berdasarkan bulan dan tahun yang dipilih.
-    //         $.ajax({
-    //             type: 'POST',
-    //             url: '<?= base_url('user/dashboard/getPresensiData') ?>', // Ganti dengan URL yang sesuai
-    //             data: {
-    //                 userId: <?php echo $userId; ?>,
-    //                 year: selectedYear,
-    //                 month: selectedMonth
-    //             },
-    //             success: function(data) {
-    //                 // Di sini Anda dapat memperbarui kalender dengan data presensi baru.
-
-    //                 // Ubah tanggal berdasarkan bulan dan tahun yang dipilih
-    //                 var selectedMonth = document.getElementById('month').value;
-    //                 var selectedYear = document.getElementById('year').value;
-
-    //                 // Misalnya, jika Anda ingin memperbarui tanggal dengan tanggal 1 bulan dan tahun yang dipilih:
-    //                 var newDate = selectedYear + '-' + selectedMonth + '-01';
-
-    //                 // Mengganti tanggal dalam kalender dengan tanggal yang baru
-    //                 $('#tanggal').text(newDate);
-
-    //                 // Memperbarui isi kalender dengan data presensi baru
-    //                 $('#presensi-data').html(data);
-    //             }
-
-    //         });
-    //     }
-    // 
-</script>
-
 <script>
     //WAKTU
     function currentTime() {
@@ -333,107 +233,108 @@
     }
 </script>
 
+// Kehadiran
 <script>
-$(document).ready(function() {
-    let flashElement = $('#flashPresensi');
-    let flashMessage = flashElement.data('flash');
-    let flashType = flashElement.data('type');
+    $(document).ready(function() {
+        let flashElement = $('#flashPresensi');
+        let flashMessage = flashElement.data('flash');
+        let flashType = flashElement.data('type');
 
-    const absenData = '<?= base64_encode($absen) ?>';
-    const filename = '<?= $karyawan->id ?>';
-    const is_wfh = 0;
-    const is_sakit = 1;
+        const absenData = '<?= base64_encode($absen) ?>';
+        const filename = '<?= $karyawan->id ?>';
+        const is_wfh = 0;
+        const is_sakit = 1;
 
-    if (flashMessage) {
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger'
-            },
-            buttonsStyling: true
-        });
+        if (flashMessage) {
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: true
+            });
 
-        swalWithBootstrapButtons.fire({
-            title: 'Mengapa Anda Kemarin Tidak Masuk?',
-            text: "Berikan Keterangan yang sesuai!",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sakit',
-            cancelButtonText: 'Tidak Berhadir',
-            reverseButtons: true,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then((result) => {
-            if (result.isConfirmed) { //Mengirim data Sakit
-                const alasan = result.value;
-                $.ajax({
-                    url: "<?= base_url('presensi/tambahPresensiSakit') ?>",
-                    type: 'POST',
-                    data: {
-                        absen: absenData,
-                        filename: filename,
-                        is_wfh: 0,
-                        is_sakit: 1
-                    },
-                    success: function(response) {
-                        if (response.success) {
+            swalWithBootstrapButtons.fire({
+                title: 'Mengapa Anda Kemarin Tidak Masuk?',
+                text: "Berikan Keterangan yang sesuai!",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sakit',
+                cancelButtonText: 'Tidak Berhadir',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then((result) => {
+                if (result.isConfirmed) { //Mengirim data Sakit
+                    const alasan = result.value;
+                    $.ajax({
+                        url: "<?= base_url('presensi/tambahPresensiSakit') ?>",
+                        type: 'POST',
+                        data: {
+                            absen: absenData,
+                            filename: filename,
+                            is_wfh: 0,
+                            is_sakit: 1
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire(
+                                    'Berhasil!',
+                                    'Data presensi telah diperbarui.',
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Berhasil!',
+                                    'Data presensi telah diperbarui.',
+                                    'success'
+                                );
+                            }
+                        },
+                        error: function() {
                             Swal.fire(
-                                'Berhasil!',
-                                'Data presensi telah diperbarui.',
-                                'success'
-                            );
-                        } else {
-                            Swal.fire(
-                                'Berhasil!',
-                                'Data presensi telah diperbarui.',
-                                'success'
+                                'Gagal!',
+                                'Terjadi kesalahan saat mengirim data.',
+                                'error'
                             );
                         }
-                    },
-                    error: function() {
-                        Swal.fire(
-                            'Gagal!',
-                            'Terjadi kesalahan saat mengirim data.',
-                            'error'
-                        );
-                    }
-                });
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                const alasan = result.value;
-                $.ajax({
-                    url: "<?= base_url('presensi/tambahPresensiTidakHadir') ?>",
-                    type: 'POST',
-                    data: {
-                        absen: absenData,
-                        filename: filename,
-                        is_wfh: 0,
-                        is_sakit: 0
-                    },
-                    success: function(response) {
-                        if (response.success) {
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    const alasan = result.value;
+                    $.ajax({
+                        url: "<?= base_url('presensi/tambahPresensiTidakHadir') ?>",
+                        type: 'POST',
+                        data: {
+                            absen: absenData,
+                            filename: filename,
+                            is_wfh: 0,
+                            is_sakit: 0
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire(
+                                    'Berhasil!',
+                                    'Data presensi telah diperbarui.',
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Berhasil!',
+                                    'Data presensi telah diperbarui.',
+                                    'success'
+                                );
+                            }
+                        },
+                        error: function() {
                             Swal.fire(
-                                'Berhasil!',
-                                'Data presensi telah diperbarui.',
-                                'success'
-                            );
-                        } else {
-                            Swal.fire(
-                                'Berhasil!',
-                                'Data presensi telah diperbarui.',
-                                'success'
+                                'Gagal!',
+                                'Terjadi kesalahan saat mengirim data.',
+                                'error'
                             );
                         }
-                    },
-                    error: function() {
-                        Swal.fire(
-                            'Gagal!',
-                            'Terjadi kesalahan saat mengirim data.',
-                            'error'
-                        );
-                    }
-                });
-            }
-        });
-    }
-});
+                    });
+                }
+            });
+        }
+    });
 </script>
