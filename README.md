@@ -93,7 +93,7 @@ Pilih Email Yang tersimpan sebagai admin
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
 ### 6) Tambahkan Data Karyawan
-```NOTE : Sebelum menambahkan Users/Karyawan, Diharuskan untuk Mengisi Tipa & Jabatan.```
+```NOTE : Sebelum menambahkan Users/Karyawan, Diharuskan untuk Mengisi Tipe & Jabatan.```
 
 Pilih Dibagian sidebar ```Management Users```
 
