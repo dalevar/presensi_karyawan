@@ -4,7 +4,7 @@
 ### Requires
 Cannot Use in PHP 8
 
-Recomended Use php : 7.4.33
+Recomended Use php : [7.4.33](https://www.filehorse.com/download-php-64/75990/download/)
 
 php: >=5.5.9
 
