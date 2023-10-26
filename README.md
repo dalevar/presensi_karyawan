@@ -95,3 +95,5 @@ Then Edit The Code :
 - [CodeIgniter documentation](http://www.codeigniter.com/user_guide/)
 
 - [Laravel framework - Eloquent documentation](https://laravel.com/docs/5.1/eloquent)
+
+- [Dashboard Template]([https://laravel.com/docs/5.1/eloquent](https://iqonic.design/product/admin-templates/datum-lite-free-crm-html-admin-dashboard-template/)https://iqonic.design/product/admin-templates/datum-lite-free-crm-html-admin-dashboard-template/)
