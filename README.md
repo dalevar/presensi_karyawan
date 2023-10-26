@@ -84,8 +84,14 @@ Then Edit The Code :
 
 ### 5) Login as admin
 
-### 6) Add Karyawan
-![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/40cbc49b-a58f-4d28-9f30-81aa2315521a)
+### 6) Tambahkan Data Karyawan
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) 
+
+### KLICK TAMBAH
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/40cbc49b-a58f-4d28-9f30-81aa2315521a)
+
+### Tambahkan Data Karyawan Lalu Klick Save Changes
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/370cfe1f-9e60-4caa-bc08-b3bd73ee2753)
 
 
 
