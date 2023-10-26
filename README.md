@@ -2,9 +2,9 @@
 ## Codeigniter 3.1.0 Integrated with Illuminate Database Eloquent
 
 ### Requires
-Cannot Use in PHP 8
+Tidak bisa digunakan di PHP 8
 
-Recomended Use php : [7.4.33](https://drive.google.com/file/d/1HeOdugxv82lA4z_SIriciXECL3W2JmmF/view?usp=drive_link)
+Recomended Menggunakan php : [7.4.33](https://drive.google.com/file/d/1HeOdugxv82lA4z_SIriciXECL3W2JmmF/view?usp=drive_link)
 
 php: >=5.5.9
 
