@@ -81,49 +81,94 @@ function hitungJumlahTidakMasuk($user_id, $tanggal)
 }
 
 
+// function getHariLibur()
+// {
+//     // Load library HTTP client
+//     $CI = get_instance();
+//     $CI->load->library('curl');
+//     $CI->load->model('HolidaysModel');
+//     $holidaysModel = new HolidaysModel();
+//     //lakukan pengecekan terhadap api
+
+//     // Permintaan ke API Hari Libur
+//     $response = $CI->curl->simple_get('https://api-harilibur.vercel.app/api');
+//     //lalu cek data ke database, jika ada lakukan responsenya terhadap data
+//     //jika data api ini tidak ada di dalam database maka masukkan data kedalam database
+
+//     // dd($response);
+//     if ($response) {
+//         // Data JSON dari API
+//         $data = json_decode($response);
+
+//         $filteredData = array_filter($data, function ($item) {
+//             return isset($item->is_national_holiday) && $item->is_national_holiday === true;
+//         });
+
+//         foreach ($filteredData as $item) {
+//             // Lakukan pengecekan apakah data dengan tanggal tertentu sudah ada dalam database
+//             $existingHoliday = $holidaysModel->where('holiday_date', $item->holiday_date)->first();
+
+//             if (!$existingHoliday) {
+//                 // Jika data belum ada, masukkan ke database
+//                 $newHoliday = new HolidaysModel();
+//                 $newHoliday->holiday_date = $item->holiday_date;
+//                 $newHoliday->holiday_name = $item->holiday_name;
+//                 $newHoliday->is_national_holiday = $item->is_national_holiday;
+//                 $newHoliday->save();
+//             }
+//         }
+
+//         return $filteredData;
+//     } else {
+//         // Handle kesalahan jika tidak dapat terhubung ke API
+//         return false;
+//     }
+// }
+
 function getHariLibur()
 {
-    // Load library HTTP client
     $CI = get_instance();
-    $CI->load->library('curl');
     $CI->load->model('HolidaysModel');
     $holidaysModel = new HolidaysModel();
-    //lakukan pengecekan terhadap api
 
-    // Permintaan ke API Hari Libur
-    $response = $CI->curl->simple_get('https://api-harilibur.vercel.app/api');
-    //lalu cek data ke database, jika ada lakukan responsenya terhadap data
-    //jika data api ini tidak ada di dalam database maka masukkan data kedalam database
+    // Dapatkan tahun saat ini
+    $tahunSaatIni = date('Y');
 
-    // dd($response);
-    if ($response) {
-        // Data JSON dari API
-        $data = json_decode($response);
+    // Periksa apakah ada data dalam database untuk tahun saat ini
+    $dataLibur = $holidaysModel
+        ->whereYear('holiday_date', $tahunSaatIni)
+        ->get();
 
-        $filteredData = array_filter($data, function ($item) {
-            return isset($item->is_national_holiday) && $item->is_national_holiday === true;
-        });
-
-        foreach ($filteredData as $item) {
-            // Lakukan pengecekan apakah data dengan tanggal tertentu sudah ada dalam database
-            $existingHoliday = $holidaysModel->where('holiday_date', $item->holiday_date)->first();
-
-            if (!$existingHoliday) {
-                // Jika data belum ada, masukkan ke database
-                $newHoliday = new HolidaysModel();
-                $newHoliday->holiday_date = $item->holiday_date;
-                $newHoliday->holiday_name = $item->holiday_name;
-                $newHoliday->is_national_holiday = $item->is_national_holiday;
-                $newHoliday->save();
-            }
-        }
-
-        return $filteredData;
+    if (!$dataLibur->isEmpty()) {
+        // Jika data untuk tahun saat ini sudah ada dalam database, kembalikan datanya
+        return $dataLibur;
     } else {
-        // Handle kesalahan jika tidak dapat terhubung ke API
-        return false;
+        // Jika tidak ada data untuk tahun saat ini, ambil data libur baru dari API
+        $response = $CI->curl->simple_get('https://api-harilibur.vercel.app/api');
+
+        if ($response) {
+            $data = json_decode($response);
+
+            $filteredData = array_filter($data, function ($item) {
+                return isset($item->is_national_holiday) && $item->is_national_holiday === true;
+            });
+
+            foreach ($filteredData as $item) {
+                $dataLiburBaru = new HolidaysModel();
+                $dataLiburBaru->holiday_date = $item->holiday_date;
+                $dataLiburBaru->holiday_name = $item->holiday_name;
+                $dataLiburBaru->is_national_holiday = $item->is_national_holiday;
+                $dataLiburBaru->save();
+            }
+
+            return $filteredData;
+        } else {
+            return false;
+        }
     }
 }
+
+
 
 function getTanggal()
 {
@@ -403,15 +448,17 @@ function generateCalendar($userId, $year, $month)
                 $jamPresensi = strtotime('08:00:00');
                 $jamTidakHadir = strtotime('00:00:00');
                 if ($waktuPresensi == $jamTidakHadir) {
-                    if ($isSakit) {
-                        $dayClass = 'text-secondary';
-                        $icon = 'ri-hospital-line';
-                        $tooltip = '-';
-                    }
                     $dayClass = 'text-secondary';
                     $icon = 'ri-close-circle-line';
                     $tooltip = '-';
                 }
+
+                if ($isSakit == 1) {
+                    $dayClass = 'text-secondary';
+                    $icon = 'ri-hospital-line';
+                    $tooltip = '-';
+                }
+
                 if ($waktuPresensi <= $jamPresensi && $waktuPresensi != $jamTidakHadir) {
                     // Presensi tepat waktu
                     $dayClass = 'text-green';
@@ -798,8 +845,10 @@ function generateDataRekapTahunan($userId, $year)
         $batasSakit = $dataSakit->nilai;
         $penguranganCutiSakit = $dataSakitPenguranganCuti->nilai;
 
-        $alokasiCuti = $alokasiCuti -= $totalSakit;
-        // dd($totalSakit);
+        $alokasiCuti = $alokasiCuti;
+
+        // $alokasiCuti = $alokasiCuti -= $jumlahTotalSakit[$month];
+        // dd($jumlahTotalSakit[$month]);
 
 
         //Tidak Hadir Terlambat
@@ -840,7 +889,7 @@ function generateDataRekapTahunan($userId, $year)
 
         echo "<tr>";
         $totalCuti[$month] = $alokasiCuti;
-        // dd($alokasiCuti);
+        // dd($totalCuti[$month]);
 
         // Loop melalui data presensi per bulan
         foreach ($presensiList as $presensi) {
@@ -895,7 +944,7 @@ function generateDataRekapTahunan($userId, $year)
                                 $totalKeterlambatan -= 480;
                             }
                         }
-                    } elseif ($waktuPresensi == $jamTidakHadir && !$isSakit) {
+                    } elseif ($waktuPresensi == $jamTidakHadir && $isSakit == 0) {
                         if ($totalCuti > 0) {
                             $totalCuti[$monthPresensi]--;
                         }
@@ -995,7 +1044,7 @@ function generateDataRekapTahunan($userId, $year)
 </ul>";
             echo "</td>";
             echo "<td>";
-            if ($totalCuti[$month] > $batasSakit) {
+            if ($totalCuti[$month] > $alokasiCuti) {
                 echo "Total Cuti: 0 Hari";
             } else {
                 echo "Total Cuti: " . $totalCuti[$month] . " Hari";
@@ -1005,7 +1054,7 @@ function generateDataRekapTahunan($userId, $year)
             <span class='badge text-primary badge-pill'>Total Cuti dikurangi dari :</span>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
             Izin/Tidak Hadir
-            <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+            <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
         </li>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
             Terlambat

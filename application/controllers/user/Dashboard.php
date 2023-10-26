@@ -55,9 +55,18 @@ class Dashboard extends CI_Controller
                 echo "Karyawan tidak ditemukan.";
             }
 
+            $jamMasuk = KonfigModel::where('nama', 'jam_masuk')->first();
+
+            if ($jamMasuk) {
+                // Ambil nilai jam masuk dari hasil query
+                $jamMasuk = $jamMasuk->nilai;
+            } else {
+                // Handle jika jam masuk tidak ditemukan dalam konfigurasi
+                $jamMasuk = '08:00';
+            }
             // Mendapatkan tanggal saat ini
             $tanggal = date('Y-m-d');
-            $tanggalAbsen = date('Y-m-d 08:00:00');
+            $tanggalAbsen = date('Y-m-d') . ' ' . $jamMasuk . ':00';
             $tanggalHadir = date('Y-m-d H:i:s');
 
             //QRCode
