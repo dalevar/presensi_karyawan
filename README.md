@@ -4,47 +4,90 @@
 
 php: >=5.5.9
 
-### Installation
-
+### Installation 
+### 1) Install the Illuminate Database package with Composer
 Install the Illuminate Database package with Composer:
 
 ```sh
 $ composer install
 ```
 
-### Using The Eloquent ORM
+### 2) Import Database
 
-**Example:**
+### 3) Create Admin :
+Open Folder :	->Application
+		->controllers
+		->Auth.php
+Then Edit The Code :
+```
+ if (!$user->exists) {
+                    if ($data['email'] == $karyawan->email) {
+                        if ($karyawan) {
+                            // Data pengguna belum ada, masukkan data
+                            $user->login_access = 0;
+                            $user->first_name = $data['given_name'];
+                            $user->last_name = $data['family_name'];
+                            $user->email_address = $data['email'];
+                            $user->profile_picture = $data['picture'];
+                            $user->created_at = $current_datetime;
+                            $user->save();
 
-Model
-
-```php
-<?php
-use \Illuminate\Database\Eloquent\Model as Eloquent;
-
-class User extends Eloquent{
-    protected $table = 'users';
-
-}
+                            $this->session->set_flashdata('berhasil', 'Email Anda Telah Terdaftar Harap Login kembali');
+                            redirect('auth/berhasil');
+                        }
+                    } else {
+			    $user->login_access = 1;
+                            $user->first_name = $data['given_name'];
+                            $user->last_name = $data['family_name'];
+                            $user->email_address = $data['email'];
+                            $user->profile_picture = $data['picture'];
+                            $user->created_at = $current_datetime;
+                            $user->save();
+                        $this->session->set_flashdata('gagal', 'Email Tidak Terdaftar!');
+                        redirect('auth/gagal');
+                    }
 ```
 
-Controller
-
-```php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-class Home extends CI_Controller {
-
-	public function index()
-	{
-		$this->load->model('user');
-
-		$users = User::where('votes', '>', 1)->get();
-
-		$this->load->view('home/index', ['users' => $users]);
-	}
-}
+### 4) Remove The this code :
 ```
+			    $user->login_access = 1;
+                            $user->first_name = $data['given_name'];
+                            $user->last_name = $data['family_name'];
+                            $user->email_address = $data['email'];
+                            $user->profile_picture = $data['picture'];
+                            $user->created_at = $current_datetime;
+                            $user->save();
+```
+### Make sure your code like this (Auth.php):
+```
+ if (!$user->exists) {
+                    if ($data['email'] == $karyawan->email) {
+                        if ($karyawan) {
+                            // Data pengguna belum ada, masukkan data
+                            $user->login_access = 0;
+                            $user->first_name = $data['given_name'];
+                            $user->last_name = $data['family_name'];
+                            $user->email_address = $data['email'];
+                            $user->profile_picture = $data['picture'];
+                            $user->created_at = $current_datetime;
+                            $user->save();
+
+                            $this->session->set_flashdata('berhasil', 'Email Anda Telah Terdaftar Harap Login kembali');
+                            redirect('auth/berhasil');
+                        }
+                    } else {
+                        $this->session->set_flashdata('gagal', 'Email Tidak Terdaftar!');
+                        redirect('auth/gagal');
+                    }
+```
+
+### 5) Login as admin
+
+### 6) Add Karyawan
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d)
+
+
+
 
 ### Documentation
 
