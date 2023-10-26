@@ -16,9 +16,9 @@ $ composer install
 ### 2) Import Database
 
 ### 3) Create Admin :
-Open Folder :	->Application
+Open Folder :	```->Application
 		->controllers
-		->Auth.php
+		->Auth.php```
 Then Edit The Code :
 ```
  if (!$user->exists) {
