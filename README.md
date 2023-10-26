@@ -49,7 +49,8 @@ Then Edit The Code :
                     }
 ```
 
-Setelah itu kembali ke halaman login Lalu ### Gunakan Email yang ingin dijadikan sebagai admin 
+Setelah itu kembali ke halaman login Lalu 
+### Gunakan Email yang ingin dijadikan sebagai admin 
 
 ### 4) Remove The this code :
 ```
