@@ -96,4 +96,4 @@ Then Edit The Code :
 
 - [Laravel framework - Eloquent documentation](https://laravel.com/docs/5.1/eloquent)
 
-- [Dashboard Template](https://iqonic.design/product/admin-templates/datum-lite-free-crm-html-admin-dashboard-template/)https://iqonic.design/product/admin-templates/datum-lite-free-crm-html-admin-dashboard-template/)
+- [Dashboard Template](https://iqonic.design/product/admin-templates/datum-lite-free-crm-html-admin-dashboard-template/)
