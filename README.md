@@ -83,6 +83,8 @@ Then Edit The Code :
 ```
 
 ### 5) Login as admin
+Pilih Email Yang tersimpan sebagai admin
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
 ### 6) Tambahkan Data Karyawan
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) 
