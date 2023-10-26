@@ -15,7 +15,7 @@ $ composer install
 
 ### 2) Import Database
 
-### 3) Create Admin :
+### 3) Create Akun Admin :
 Open Folder :	```->Application
 		->controllers
 		->Auth.php```
@@ -48,6 +48,8 @@ Then Edit The Code :
                         redirect('auth/gagal');
                     }
 ```
+
+Setelah itu kembali ke halaman login Lalu ### Gunakan Email yang ingin dijadikan sebagai admin 
 
 ### 4) Remove The this code :
 ```
@@ -88,6 +90,7 @@ Pilih Email Yang tersimpan sebagai admin
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
 ### 6) Tambahkan Data Karyawan
+Pilih Dibagian sidebar ```Management Users```
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) 
 
 ### KLICK TAMBAH
