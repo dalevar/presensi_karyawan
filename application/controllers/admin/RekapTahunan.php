@@ -18,23 +18,26 @@ class RekapTahunan extends CI_Controller
 
     public function index()
     {
+        $get = (object) $_GET;
+
         if (!isset($login_button)) {
             $data['title'] = 'Rekap Tahunan';
             $data['user'] = $this->session->userdata('user_data');
 
-            $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
-            $month = isset($_GET['month']) ? $_GET['month'] : date('n');
+            /***** TANGGAL KERJA, BULAN, TAHUN  *****/
+            $year = isset($get->year) ? $get->year : date('Y');
+            $month = isset($get->month) ? $get->month : date('n');
             $firstDay = mktime(0, 0, 0, $month, 1, $year);
             $monthName = date('F', $firstDay);
             $data['monthName'] = getIndonesianMonth($monthName);
-
-            $karyawanModel = new KaryawanModel();
-            $karyawanList = $karyawanModel->getKaryawan();
-            $data['karyawanList'] = $karyawanList;
-
             $data['year'] = $year;
             $data['month'] = $month;
             $data['tanggal'] = generateTanggalKerja($year, $month);
+
+            /***** DATA KARYAWAN/USER  *****/
+            $karyawanModel = new KaryawanModel();
+            $karyawanList = $karyawanModel->getKaryawan();
+            $data['karyawanList'] = $karyawanList;
 
             $this->load->view('template/header', $data);
             $this->load->view('template/sidebar', $data);
@@ -42,7 +45,6 @@ class RekapTahunan extends CI_Controller
             $this->load->view('template/footer');
         }
     }
-
 
     public function adminEditJamMasuk()
     {
@@ -54,17 +56,15 @@ class RekapTahunan extends CI_Controller
             $jamMasukBaru = $this->input->post('jam_masuk');
             $userId = $this->input->post('userId');
             $tanggal = $this->input->post('tanggal');
+
             $presensi = new PresensiModel();
-            // dd($presensi);
             $presensiData = $presensi->where('user_id', $userId)
                 ->whereDay('created_on', $tanggal)
                 ->first();
             // dd($presensiData);
             if ($presensiData) {
-                // $jamMasukBaruPresensi = $jamMasukBaru;
                 $createdOnLama = $presensiData->created_on;
                 $tanggalBaru = date('Y-m-d', strtotime($createdOnLama)) . ' ' . $jamMasukBaru;
-                // $tanggalBaru = date('Y-m-d H:i:s', strtotime($createdOnLama . $jamMasukBaru));
                 $presensiData->created_on = $tanggalBaru;
                 $presensiData->save();
 
@@ -121,13 +121,5 @@ class RekapTahunan extends CI_Controller
             // Redirect dengan pesan kesalahan jika data tidak ditemukan
             $this->session->set_flashdata('gagal', 'Data tidak ditemukan.');
         }
-    }
-
-
-    public function adminEditKehadiran()
-    {
-        $userId = $this->input->post('user_id');
-        $tanggal = $this->input->post('tanggal');
-        $sakit = $this->input->post('wfhradio');
     }
 }

@@ -161,9 +161,7 @@
                                             <tbody>
                                                 <?php
                                                 $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
-                                                // $month = isset($_GET['month']) ? $_GET['month'] : date('n');
                                                 $userId = $karyawan->user_id;
-                                                // $tanggal = date("$year-$month");
                                                 generateDataRekapTahunan($userId, $year);
                                                 ?>
                                             </tbody>
@@ -280,7 +278,7 @@
                                                 <?php
                                                 if (empty($totalCutiBulanan)) {
                                                     echo "<h5 class='mb-2 font-weight-bold  text-secondary'>
-                                            <span class='text-danger'>-</span>
+                                            <span class='text-danger'>- Hari</span>
                                         </h5>";
                                                 } else {
                                                     echo "<h5 class='mb-2 font-weight-bold  text-secondary'>

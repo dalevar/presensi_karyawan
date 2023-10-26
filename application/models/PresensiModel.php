@@ -336,7 +336,7 @@ class PresensiModel extends Eloquent
                 $totalTidakHadirBulanan += $totalSakitBulanan;
             }
         }
-        // dd($totalJamWFHBulanan);
+        // dd($jumlahTidakHadirBulan);
 
 
         return $totalTidakHadirBulanan;
@@ -422,22 +422,14 @@ class PresensiModel extends Eloquent
         $jumlahTotalTidakHadirSakit = 0;
 
         foreach ($presensiList as $presensi) {
+            $jamTidakHadir = strtotime('00:00:00');
+            $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
             $isSakit = $presensi->is_sakit;
 
-            if ($isSakit == 1) {
-                // Dapatkan data konfigurasi WFH
-                $dataSakit = KonfigModel::where('nama', 'sakit')->first();
-
-                // Periksa apakah data konfigurasi Sakit ada
-                if ($dataSakit) {
-                    // Ambil nilai konfigurasi Sakit
-                    $nilaiSakit = $dataSakit->nilai;
-
-                    if ($isSakit == 1) {
-                        $jumlahTotalTidakHadirSakit++;
-                    }
-                }
+            if ($waktuPresensi == $jamTidakHadir && $isSakit == 1) {
+                $jumlahTotalTidakHadirSakit++;
             }
+            // dd($jumlahTotalTidakHadirSakit);
         }
 
         return $jumlahTotalTidakHadirSakit;
@@ -482,7 +474,7 @@ class PresensiModel extends Eloquent
                 $totalTidakHadirTahunan += $totalSakitTahunan;
             }
         }
-        // dd($totalJamWFHTahunan);
+        // dd($jumlahTidakHadirBulan);  
 
 
         return $totalTidakHadirTahunan;
@@ -663,8 +655,7 @@ class PresensiModel extends Eloquent
 
         // Menghitung jumlah hari dalam bulan ini
         $jumlahHariBulan = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-        $jumlahTidakHadir = 0;
-
+        $jumlahTidakHadir = 0; //Menghitung Seluruh Total Ketidakhadiran
 
         // Dapatkan daftar tanggal hari libur nasional
         $dataLibur = getHariLibur();
@@ -682,9 +673,7 @@ class PresensiModel extends Eloquent
                 $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
                 $isWeekday = ($dayOfWeek >= 1 && $dayOfWeek <= 6);
 
-
                 $jumlahPresensi = 0; // Inisialisasi jumlah presensi pada setiap hari
-
 
                 foreach ($presensiList as $presensi) {
                     $presensiCreated = date('Y-m-d', strtotime($presensi->created_on));
@@ -692,7 +681,7 @@ class PresensiModel extends Eloquent
                     $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
                     $isSakit = $presensi->is_sakit;
 
-                    if ($isWeekday && $presensiCreated == $currentDate && $waktuPresensi != $jamTidakBerhadir && !$isSakit) {
+                    if ($isWeekday && $presensiCreated == $currentDate && $waktuPresensi != $jamTidakBerhadir && $isSakit != 1) {
                         $jumlahPresensi++;
                     }
                 }
@@ -701,12 +690,13 @@ class PresensiModel extends Eloquent
                 if ($isWeekday && $jumlahPresensi == 0 && !in_array($currentDate, $tanggalLibur)) {
                     $jumlahTidakHadir++;
                 }
+
+                // dd($jumlahTidakHadir);
             }
         }
 
         return $jumlahTidakHadir;
     }
-
 
     public function sisaKesempatanTidakHadir($userId, $year, $month)
     {

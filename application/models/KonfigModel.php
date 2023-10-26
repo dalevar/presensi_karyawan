@@ -8,14 +8,5 @@ class KonfigModel extends Eloquent
     protected $primaryKey = 'id';
     protected $fillable = ['nama', 'nilai'];
 
-
-
-
-
-
-
-
-    
-
     public $timestamps = false;
 }

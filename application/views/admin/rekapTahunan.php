@@ -374,8 +374,6 @@
                                                     <?php
                                                     $year = date('Y');
                                                     $month = isset($_GET['month']) ? $_GET['month'] : date('n');
-
-                                                    // $tanggal = date("$year-$month");
                                                     generateRekapBulanan($year, $month); ?>
                                                 </tbody>
                                             </table>
@@ -385,12 +383,11 @@
                                                 <div class="date-icon-set">
                                                     <select class="form-control mb-3 " id="year" name="year">
                                                         <?php
-                                                        // Loop untuk menampilkan opsi tahun
                                                         $tahunSekarang = date("Y");
+                                                        $tahunDipilih = isset($_GET['year']) ? $_GET['year'] : $tahunSekarang; // Ambil tahun dari permintaan HTTP jika tersedia, jika tidak, gunakan tahun saat ini
                                                         for ($tahun = $tahunSekarang; $tahun >= $tahunSekarang - 2; $tahun--) {
-                                                            // Tampilkan opsi tahun
-                                                            $selected = ($tahun == $tahunSekarang) ? 'selected' : '';
-                                                            echo "<option value='{$tahun}' $selected>{$tahun}</option>";
+                                                            $selected = ($tahun == $tahunDipilih) ? 'selected' : '';
+                                                            echo "<option value='$tahun' $selected>$tahun</option>";
                                                         }
                                                         ?>
                                                     </select>
@@ -467,81 +464,82 @@ foreach ($karyawanList as $karyawan) {
         }
         //EDIT JAM MASUK
         echo '<div class="modal fade" id="modalJamMasuk' . $day . '-' . $userId . '" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-<div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalCenterTitle">Edit Jam Masuk</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-       <div class="modal-body">
-        <form action="' . base_url('admin/RekapTahunan/adminEditJamMasuk') . '" method="POST">
-        <input type="hidden" name="userId" value="' . $userId . '">
-        <input type="hidden" name="tanggal" value="' . $day . '">
-        <input type="text" name="jam_masuk" class="form-control" placeholder="" value="' . $waktuPresensi . '">
-        </div>
-        <div class="modal-footer">
-            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Simpan</button>
-        </div>
-        </form>
-    </div>
-</div>
-</div>';
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalCenterTitle">Edit Jam Masuk</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        <div class="modal-body">
+                            <form action="' . base_url('admin/RekapTahunan/adminEditJamMasuk') . '" method="POST">
+                            <input type="hidden" name="userId" value="' . $userId . '">
+                            <input type="hidden" name="tanggal" value="' . $day . '">
+                            <input type="text" name="jam_masuk" class="form-control" placeholder="" value="' . $waktuPresensi . '">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+        </div>';
 
         // EDIT WFH
         echo '<div class="modal fade" id="modalWFH' . $day . '-' . $userId . '" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-<div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalCenterTitle">Edit WFH</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-       <div class="modal-body">
-       <input type="hidden" name="userId" value="' . $userId . '">
-       <input type="hidden" name="tanggal" value="' . $day . '">
-        <div class="form-check checkbox d-inline-block mr-3">
-                    <input type="checkbox" class="form-check-inputWFH checkbox-input bg-info" name="iswfh" id="wfh' . $day . '-' . $userId . '" data-user-id="' . $userId . '" data-tanggal="' . $day . '" ' . ($isWfh ? 'checked' : '') . '>
-                    <label for="iswfh' . $day . '-' . $userId . '">WFH</label>
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalCenterTitle">Edit WFH</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    <div class="modal-body">
+                    <input type="hidden" name="userId" value="' . $userId . '">
+                    <input type="hidden" name="tanggal" value="' . $day . '">
+                        <div class="form-check checkbox d-inline-block mr-3">
+                                    <input type="checkbox" class="form-check-inputWFH checkbox-input bg-info" name="iswfh" id="wfh' . $day . '-' . $userId . '" data-user-id="' . $userId . '" data-tanggal="' . $day . '" ' . ($isWfh ? 'checked' : '') . '>
+                                    <label for="iswfh' . $day . '-' . $userId . '">WFH</label>
+                                </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
-        </div>
-        <div class="modal-footer">
-            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-    </div>
-</div>
-</div>';
+        </div>';
 
         // EDIT Kehadiran
         echo '<div class="modal fade" id="modalKehadiran' . $day . '-' . $userId . '" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-<div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalCenterTitle">Edit WFH</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-       <div class="modal-body">
-       <input type="hidden" name="userId" value="' . $userId . '">
-       <input type="hidden" name="tanggal" value="' . $day . '">
-        <div class="form-check checkbox d-inline-block mr-3">
-                    <input type="checkbox" class="form-check-inputSakit checkbox-input bg-info" name="isSakit" id="wfh' . $day . '-' . $userId . '" data-user-id="' . $userId . '" data-tanggal="' . $day . '" ' . ($isSakit ? 'checked' : '') . '>
-                    <label for="isSakit' . $day . '-' . $userId . '">Sakit ?</label>
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalCenterTitle">Edit WFH</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    <div class="modal-body">
+                    <input type="hidden" name="userId" value="' . $userId . '">
+                    <input type="hidden" name="tanggal" value="' . $day . '">
+                        <div class="form-check checkbox d-inline-block mr-3">
+                                    <input type="checkbox" class="form-check-inputSakit checkbox-input bg-info" name="isSakit" id="wfh' . $day . '-' . $userId . '" data-user-id="' . $userId . '" data-tanggal="' . $day . '" ' . ($isSakit ? 'checked' : '') . '>
+                                    <label for="isSakit' . $day . '-' . $userId . '">Sakit ?</label>
+                                </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
-        </div>
-        <div class="modal-footer">
-            <button type="cancel" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-    </div>
-</div>
-</div>';
+        </div>';
     }
 }
 ?>
+
 
 <script>
     $('.form-check-inputWFH').on('click', function() {
@@ -568,6 +566,7 @@ foreach ($karyawanList as $karyawan) {
     });
 </script>
 
+
 <script>
     $('.form-check-inputSakit').on('click', function() {
         const userId = $(this).data('user-id');
@@ -593,6 +592,7 @@ foreach ($karyawanList as $karyawan) {
     });
 </script>
 
+
 <script>
     function updateRekapBulanan() {
         var selectedMonth = document.getElementById('month').value;
@@ -604,6 +604,7 @@ foreach ($karyawanList as $karyawan) {
         window.location.href = 'rekapTahunan?year=' + selectedYear;
     }
 </script>
+
 
 <script>
     $(document).ready(function() {
@@ -641,6 +642,7 @@ foreach ($karyawanList as $karyawan) {
     });
 </script>
 
+
 <script>
     $(document).ready(function() {
         // Ketika tombol "close" diklik
@@ -651,6 +653,7 @@ foreach ($karyawanList as $karyawan) {
     });
 </script>
 
+
 <script>
     $(document).ready(function() {
         // Fungsi untuk menampilkan modal edit saat tombol "Edit" diklik
@@ -660,6 +663,7 @@ foreach ($karyawanList as $karyawan) {
         });
     });
 </script>
+
 
 <script>
     $(document).ready(function() {
@@ -680,5 +684,35 @@ foreach ($karyawanList as $karyawan) {
                 $("#cuti<?php echo $month; ?>").slideToggle("slow"); // Menampilkan atau menyembunyikan elemen "Detail"
             });
         <?php } ?>
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Ambil nilai tahun dari parameter URL "?year=9")
+        var urlParams = new URLSearchParams(window.location.search);
+        var selectedYear = urlParams.get('year');
+
+        if (selectedYear) {
+            // Temukan ID tab 
+            var tabID = 'tahunan';
+            $('.nav-tabs a[href="#' + tabID + '"]').tab('show');
+        }
+
+        // Menangani klik pada tombol dengan atribut data-month
+        $('body').on('click', '.btn-gc-cell', function(e) {
+            e.preventDefault();
+
+            // Dapatkan nilai data-month dari tombol yang diklik
+            var year = $(this).data('year');
+
+            // Dapatkan nilai tahun dari elemen select tahun
+            var month = $('#month').val();
+
+            // Kirimkan ke URL yang sesuai dengan year dan month
+            var url = 'http://localhost/presensi_karyawan/user/rekapTahunan?year=' + year + '&month=' + month;
+            window.location.href = url;
+        });
+
     });
 </script>

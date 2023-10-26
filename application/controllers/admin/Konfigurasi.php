@@ -120,7 +120,6 @@ class Konfigurasi extends CI_Controller
     public function cutiKurang()
     {
         $id = $this->input->post('id');
-        // $value = $this->input->post('value');
         $dataSakit = KonfigModel::where('nama', 'cuti_kurang')->first();
 
         if ($dataSakit) {
@@ -128,7 +127,6 @@ class Konfigurasi extends CI_Controller
 
             $dataSakit->save();
             $this->session->set_flashdata('berhasil', 'Cuti Dikurangi');
-            // $this->index();
         } else {
             $this->session->set_flashdata('gagal', 'Data tidak ada');
             $this->index();

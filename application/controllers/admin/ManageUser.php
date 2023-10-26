@@ -24,10 +24,11 @@ class ManageUser extends CI_Controller
             $data['jabatan'] = JabatanModel::all();
             $data['user'] = $this->session->userdata('user_data');
 
+            /***** DATA KARYAWAN/USER  *****/
             $dataKaryawan = $this->KaryawanModel->getKaryawan();
             $data['karyawan'] = $dataKaryawan;
-            // $data['karyawan'] = KaryawanModel::all();
 
+            /***** VIEW  *****/
             $this->load->view('template/header', $data);
             $this->load->view('template/sidebar');
             $this->load->view('admin/manageUser', $data);

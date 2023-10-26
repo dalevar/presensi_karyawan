@@ -51,15 +51,11 @@ class Auth extends CI_Controller
                             $user->created_at = $current_datetime;
                             $user->save();
 
-                            // $user_id = $user->id;
-                            // // Update user_id pada tabel karyawan yang sesuai dengan email
-                            // KaryawanModel::where('email', $user->email_address)->update(['user_id' => $user_id]);
                             $this->session->set_flashdata('berhasil', 'Email Anda Telah Terdaftar Harap Login kembali');
                             redirect('auth/berhasil');
                         }
                     } else {
                         $this->session->set_flashdata('gagal', 'Email Tidak Terdaftar!');
-
                         redirect('auth/gagal');
                     }
                 } elseif (UserModel::where('login_oauth_uid', $data['id'])->exists()) {
@@ -78,7 +74,6 @@ class Auth extends CI_Controller
                 } else {
                     UserModel::where('login_oauth_uid', $data['id'])->first();
                 }
-
                 // Set data pengguna dalam sesi
                 $user_data = [
                     'id' => $user->id,
@@ -156,6 +151,7 @@ class Auth extends CI_Controller
         redirect('auth');
     }
 
+    /*************** GAGAL LOGIN ***************/
     function gagal()
     {
         $this->session->unset_userdata('access_token');
@@ -164,6 +160,7 @@ class Auth extends CI_Controller
         redirect('auth');
     }
 
+    /*************** BERHASIL LOGIN ***************/
     function berhasil()
     {
         $this->session->unset_userdata('access_token');
@@ -173,34 +170,3 @@ class Auth extends CI_Controller
         redirect('auth');
     }
 }
-
-
-                // if (UserModel::where('login_oauth_uid', $data['id'])->exists()) {
-                //     // Update data
-                //     $user_data = [
-                //         'login_access' => 1,
-                //         'first_name' => $data['given_name'],
-                //         'last_name' => $data['family_name'],
-                //         'email_address' => $data['email'],
-                //         'profile_picture' => $data['picture'],
-                //         'updated_at' => $current_datetime,
-                //     ];
-
-                //     UserModel::where('login_oauth_uid', $data['id'])->update($user_data);
-                // } else {
-                //     // Insert data
-                //     $user_data = [
-                //         'login_oauth_uid' => $data['id'],
-                //         'login_access' => 1,
-                //         'first_name' => $data['given_name'],
-                //         'last_name' => $data['family_name'],
-                //         'email_address' => $data['email'],
-                //         'profile_picture' => $data['picture'],
-                //         'created_at' => $current_datetime,
-                //     ];
-
-                //     UserModel::create($user_data);
-                // }
-                // $this->session->set_userdata('user_data', $user_data);
-                // var_dump($user_data);
-                // die;

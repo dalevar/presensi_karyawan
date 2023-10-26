@@ -20,8 +20,10 @@ class Rekap extends CI_Controller
 
     public function index()
     {
+        $get = (object) $_GET;
+
         if (!isset($login_button)) {
-            //data Karyawan
+            /*************** DATA KARYAWAN ***************/
             $data['title'] = 'Rekap';
             $userData = $this->session->userdata('user_data');
             $userId = $userData['id'];
@@ -55,43 +57,34 @@ class Rekap extends CI_Controller
                 echo "Karyawan tidak ditemukan.";
             }
 
-            //data presensi
+            /*************** DATA PRESENSI ***************/
             $presensi = new PresensiModel();
             $absen = $presensi->where('user_id', $userId)->get()->first();
             $data['absensi'] = $absen;
-
-            $presensi = new PresensiModel();
-            //Tanggal
             $tanggalBulanIni = getTanggal();
             $data['getTanggal'] = $tanggalBulanIni;
 
-            $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
-            $month = isset($_GET['month']) ? $_GET['month'] : date('n');
+            /*************** DATA TANGGAL, TAHUN, BULAN ***************/
+            $year = isset($get->year) ? $get->year : date('Y');
+            $month = isset($get->month) ? $get->month : date('n');
             $firstDay = mktime(0, 0, 0, $month, 1, $year);
             $monthName = date('F', $firstDay);
             $data['monthName'] = getIndonesianMonth($monthName);
-
-
             $data['year'] = $year;
             $data['month'] = $month;
             $data['tanggal'] = generateTanggalKerja($year, $month);
 
+            /*************** PRESENSI ***************/
+            /*************** BULANAN ***************/
+            $tidakHadirBulanan = $presensi->tidakHadirBulanan($userId, $month);
+            $data['tidakHadirBulanan'] = $tidakHadirBulanan;
+
             $totalTerlambatBulanan = $presensi->totalTerlambatBulanTahun($userId, $year, $month);
             $data['totalTerlambatBulanan'] = $totalTerlambatBulanan;
 
-
-            $terlambat = totalTerlambatTahun($userId, $year);
-            // dd($terlambat);
-            $data['totalTerlambat'] = $terlambat;
-
-            //BULANAN
-            $tidakHadirBulanan = $presensi->tidakHadirBulanan($userId, $month);
-            // dd($tidakHadir);
-            $data['tidakHadirBulanan'] = $tidakHadirBulanan;
-
             $tidakHadirSakitBulanan = $presensi->hitungTotalSakitBulanan($userId, $month);
-            // dd($tidakHadir);
             $data['tidakHadirSakitBulanan'] = $tidakHadirSakitBulanan;
+
 
             $wfhBulanan = totalWFHBulanan($userId, $month);
             $data['wfhBulanan'] = $wfhBulanan;
@@ -99,15 +92,15 @@ class Rekap extends CI_Controller
             $totalCutiBulanan = sisaCutiBulanan($userId, $month);
             $data['totalCutiBulanan'] = $totalCutiBulanan;
 
-            //TAHUNAN
+            /*************** TAHUNAN ***************/
             $tidakHadirTahunan = $presensi->tidakHadirTahunan($userId, $year);
-            // dd($tidakHadirTahunan);
             $data['tidakHadirTahunan'] = $tidakHadirTahunan;
 
-            $tidakHadirSakitTahunan = $presensi->hitungTotalSakitTahunan($userId, $year);
-            // dd($tidakHadir);
-            $data['tidakHadirSakitTahunan'] = $tidakHadirSakitTahunan;
+            $terlambat = totalTerlambatTahun($userId, $year);
+            $data['totalTerlambat'] = $terlambat;
 
+            $tidakHadirSakitTahunan = $presensi->hitungTotalSakitTahunan($userId, $year);
+            $data['tidakHadirSakitTahunan'] = $tidakHadirSakitTahunan;
 
             $wfh = totalWFH($userId, $year);
             $data['wfh'] = $wfh;
@@ -115,7 +108,7 @@ class Rekap extends CI_Controller
             $totalCuti = sisaCutiTahunan($userId, $year);
             $data['totalCuti'] = $totalCuti;
 
-
+            /*************** VIEW ***************/
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);
             $this->load->view('User/rekap', $data);

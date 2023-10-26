@@ -75,15 +75,6 @@ class Presensi extends CI_Controller
                 $this->session->set_flashdata('gagal', 'Data Anda tidak ada');
                 redirect('user/dashboard');
             }
-
-            // //Jika data berhasil disimpan
-            // if ($presensi->id) {
-            //     $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk');
-            //     redirect('user/dashboard');
-            // } else {
-            //     $this->session->set_flashdata('gagal', 'Data Anda tidak ada');
-            //     redirect('user/dashboard');
-            // }
         }
     }
 
@@ -102,31 +93,22 @@ class Presensi extends CI_Controller
             $user_id = $absen['user_id'];
             $created_by = $filename;
 
-            // $tanggalHari = date('Y-m-d', strtotime('-1 day'));
-            // if (date('w', strtotime($tanggalHari)) != 0) {
-            //     // Hanya tambahkan tanggal jika bukan hari Minggu
-            //     $created_on = $tanggalHari;
-            //     $tanggal = $tanggalHari;
-            // }
-
-            // $tanggal = date('Y-m-d', strtotime('-1 day'));
-            // $created_on = $tanggal;
-
             $presensiModel = new PresensiModel();
             $lastAttendanceDate = $presensiModel->getLastAttendanceDate($user_id);
             $secondLastAttendanceDate = $presensiModel->getSecondLastAttendanceDate($user_id);
             if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
 
-                $tanggalAkhir = date('Y-m-d');
-
                 $tanggalAwal = $secondLastAttendanceDate;
-                // $tanggalAkhir = $lastAttendanceDate;
+                $tanggalAkhir = date('Y-m-d');
 
                 $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
                 for ($i = 0; $i <= $gapTanggal; $i++) {
                     $tanggal = date('Y-m-d', strtotime("-$i day"));
                     $created_on = date('Y-m-d', strtotime("-$i day"));
-
+                    // Periksa apakah tanggal adalah hari Minggu (ISO 7) atau sama dengan tanggal saat ini
+                    if (date('N', strtotime($tanggal)) == 7 || $tanggal == date('Y-m-d')) {
+                        continue; // Lewati tanggal ini
+                    }
                     $presensi = new PresensiModel();
                     $presensi->user_id = $user_id;
                     $presensi->tanggal = $tanggal;
@@ -168,13 +150,6 @@ class Presensi extends CI_Controller
             $lastAttendanceDate = $presensiModel->getLastAttendanceDate($user_id);
             $secondLastAttendanceDate = $presensiModel->getSecondLastAttendanceDate($user_id);
             if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
-                // Hitung tanggal awal (tanggal terakhir absensi)
-                // $tanggalAwal = $lastAttendanceDate;
-                // $tanggalAwal = date('Y-m-d', strtotime($lastAttendanceDate . ' + 1 day'));
-                // // Hitung tanggal akhir (hari setelah tanggal terakhir absensi)
-                // $tanggalAkhir = date('Y-m-d', strtotime('-1 day'));
-
-                // $tanggalAwal = $lastAttendanceDate;
                 $tanggalAkhir = date('Y-m-d');
 
                 $tanggalAwal = $secondLastAttendanceDate;
@@ -184,7 +159,9 @@ class Presensi extends CI_Controller
                 for ($i = 0; $i <= $gapTanggal; $i++) {
                     $tanggal = date('Y-m-d', strtotime("-$i day"));
                     $created_on = date('Y-m-d', strtotime("-$i day"));
-
+                    if (date('N', strtotime($tanggal)) == 7 || $tanggal == date('Y-m-d')) {
+                        continue; // Lewati tanggal ini
+                    }
 
                     $presensi = new PresensiModel();
                     $presensi->user_id = $user_id;
@@ -210,25 +187,4 @@ class Presensi extends CI_Controller
         // Keluarkan respons dalam format JSON
         echo json_encode($response);
     }
-
-    // public function Presensi()
-    // {
-    //     $userData = $this->session->userdata('user_data');
-    //     $userId = $userData['id'];
-    //     $year = $this->input->get('year');
-    //     $month = $this->input->get('month');
-
-    //     // Panggil model atau akses database Anda untuk mengambil data presensi
-    //     $this->load->model('PresensiModel');
-    //     $presensiData = $this->PresensiModel->getPresensiData($userId, $year, $month);
-
-    //     // Konversi data presensi menjadi format JSON
-    //     $jsonResponse = json_encode($presensiData);
-
-    //     // Atur header HTTP untuk memberi tahu bahwa ini adalah respons JSON
-    //     header('Content-Type: application/json');
-
-    //     // Keluarkan respons JSON
-    //     echo $jsonResponse;
-    // }
 }

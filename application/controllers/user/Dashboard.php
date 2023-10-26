@@ -20,12 +20,15 @@ class Dashboard extends CI_Controller
 
     public function index()
     {
+        $get = (object) $_GET;
+
         if (!isset($login_button)) {
             //data Karyawan
             $data['title'] = 'Dashboard Presensi';
             $userData = $this->session->userdata('user_data');
             $userId = $userData['id'];
 
+            /***** DATA KARYAWAN/USER  *****/
             $karyawanModel = new KaryawanModel();
             $karyawan = $karyawanModel->getByUserId($userId);
             $data['karyawan'] = $karyawan;
@@ -55,8 +58,8 @@ class Dashboard extends CI_Controller
                 echo "Karyawan tidak ditemukan.";
             }
 
+            /***** DATA JAM PRESENSI  *****/
             $jamMasuk = KonfigModel::where('nama', 'jam_masuk')->first();
-
             if ($jamMasuk) {
                 // Ambil nilai jam masuk dari hasil query
                 $jamMasuk = $jamMasuk->nilai;
@@ -69,7 +72,7 @@ class Dashboard extends CI_Controller
             $tanggalAbsen = date('Y-m-d') . ' ' . $jamMasuk . ':00';
             $tanggalHadir = date('Y-m-d H:i:s');
 
-            //QRCode
+            /***** DATA & GENERATE QRCODE  *****/
             $qrModel = new QrcodeModel();
             $qrcode = $qrModel->where('created_on', $tanggal)->get()->first();
             $dataUser = [
@@ -81,115 +84,57 @@ class Dashboard extends CI_Controller
             ];
             $dataString = json_encode($dataUser);
             $filename = $userId;
-            qrcode($dataString, $filename);
+            qrcode($dataString, $filename); //Mengirim(parsing) Data kedalam function qrCode
             $data['filename'] = $filename;
             $data['absen'] = json_encode($dataUser);
             $data['tanggal'] = $tanggal;
 
-            //data presensi
+            /***** DATA TANGGAL,BULAN, TAHUN  *****/
+            //menghitung data dinamis kehadiran
+            $year = isset($get->year) ? $get->year : date('Y');
+            $month = isset($get->month) ? $get->month : date('n');
+            $firstDay = mktime(0, 0, 0, $month, 1, $year);
+            $monthName = date('F', $firstDay);
+            $data['monthName'] = getIndonesianMonth($monthName);
+            $data['year'] = $year;
+            $data['month'] = $month;
+
+            /***** DATA PRESENSI KARYAWAN  *****/
             $presensi = new PresensiModel();
             $absen = $presensi->where('user_id', $userId)->get()->first();
             $data['absensi'] = $absen;
 
-            //menghitung data dinamis kehadiran
-            $bulanIni = date('m', strtotime($tanggal));
-            $tahun = date('Y', strtotime($tanggal));
-            $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
-            $month = isset($_GET['month']) ? $_GET['month'] : date('n');
-            $firstDay = mktime(0, 0, 0, $month, 1, $year);
-            $monthName = date('F', $firstDay);
-            $data['monthName'] = getIndonesianMonth($monthName);
-
-
-
-            $data['year'] = $year;
-            $data['month'] = $month;
-
-            $presensi = new PresensiModel();
-            // $presensiData = $presensi->getPresensiHariSebelumnya($userId);
-            // dd($presensiData);
-            // $data['presensiList'] = $presensiData;
             $presensiData = $presensi->getPresensiData($userId, $year, $month);
-            // dd($presensiData);
             $data['presensiList'] = $presensiData;
 
+            /***** DATA PRESENSI BULAN & TAHUN  *****/
+            /***** BULANAN  *****/
             $totalTerlambatBulanan = $presensi->totalTerlambatBulanTahun($userId, $year, $month);
             $data['totalTerlambatBulanan'] = $totalTerlambatBulanan;
 
             $tidakHadirBulanan = $presensi->tidakHadirBulanan($userId, $month);
             $data['tidakHadirBulanan'] = $tidakHadirBulanan;
 
-            //TAHUNAN
+            /***** TAHUNAN  *****/
             $tidakHadirTahunan = $presensi->tidakHadirTahunan($userId, $year);
-            // dd($tidakHadirTahunan);
             $data['tidakHadirTahunan'] = $tidakHadirTahunan;
 
             $terlambat = totalTerlambatTahun($userId, $year);
-            // dd($terlambat);
             $data['totalTerlambatTahunan'] = $terlambat;
 
-            // $lastAttendanceDate = $presensi->getLastAttendanceDate($userId);
-            // // dd($lastAttendanceDate);
-            // $secondLastAttendanceDate = $presensi->getSecondLastAttendanceDate($userId);
-            // // dd($secondLastAttendanceDate);
-            // // $tanggalAwal = $lastAttendanceDate;
-            // // // $tanggalAwal = date('Y-m-d', strtotime($lastAttendanceDate . ' + 1 day'));
-            // // // $tanggalAkhir = date('Y-m-d', strtotime($lastAttendanceDate . ' + 7 days'));
-            // // $tanggalAkhir = date('Y-m-d', strtotime('-1 day'));
-            // if ($lastAttendanceDate !== false && $secondLastAttendanceDate !== false) {
-            //     // Hitung tanggal awal (tanggal terakhir absensi)
-            //     $tanggalAwal = $secondLastAttendanceDate;
-            //     // $tanggalAkhir = $lastAttendanceDate;
-            //     // dd($tanggalAwal);
-            //     // Hitung tanggal akhir (hari ini)
-            //     $tanggalAkhir = date('Y-m-d');
-            //     // dd($tanggalAkhir);
-
-            //     // Lakukan loop sesuai tanggal
-            //     $startDate = new DateTime($tanggalAwal);
-            //     $endDate = new DateTime($tanggalAkhir);
-
-            //     $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
-            //     dd($gapTanggal);
-            //     // dd($endDate);
-            //     // dd($startDate);
-            //     while ($startDate <= $endDate) {
-            //         $tanggal = $startDate->format('Y-m-d');
-            //         $created_on = $tanggal;
-            //         // dd($tanggal);
-            //         // dd($created_on);
-            //         $startDate->add(new DateInterval('P1D'));
-            //     }
-            // }
-
-            // $hitung = $presensi->hitungTidakHadirBulanIni($userId, $tanggal, $bulanIni, $tahun);
-            // $data['hitungBulanIni'] = $hitung;
-            // $hitungPerTahun = $presensi->hitungTidakHadirTahunIni($userId, $tahun);
-            // $data['hitungTahunIni'] = $hitungPerTahun;
-
-            // $terlambat = $presensi->hitungTerlambatBulanIni($userId, $tanggal, $bulanIni, $tahun);
-            // $data['terlambatBulanIni'] = $terlambat;
-
-            // $terlambatPerTahun = $presensi->hitungTerlambatTahunIni($userId, $tahun);
-            // $data['terlambatTahunIni'] = $terlambatPerTahun;
-
-            //Tanggal
-            $tanggalBulanIni = getTanggal();
-            $data['getTanggal'] = $tanggalBulanIni;
-
+            /***** DATA WFH  *****/
             $totalIsWFH = PresensiModel::getTotalIsWFHByUserId($userId);
-            // dd($totalIsWFH);
             $data['wfh'] = $totalIsWFH;
+
+            /***** PRESENSI EXIST  *****/
             $presensiData = $presensi->getPresensiHariSebelumnya($userId);
-            // $tanggalHariSebelumnya = date('Y-m-d', strtotime('-1 day'));
-            // $formatdate = date('Y-m-d', strtotime($presensiData->created_on));
-            // dd($tanggalHariSebelumnya);
             $existAbsen = PresensiModel::where('user_id', $userId)
                 ->where('tanggal', $tanggalAbsen)
                 ->first();
             $data['existAbsen'] = $existAbsen;
             $data['tanggalAbsen'] = $tanggalAbsen;
 
+            /***** VIEW  *****/
             $this->load->view('template/header', $data);
             $this->load->view('template/user_sidebar', $data);
             $this->load->view('User/dashboard', $data);

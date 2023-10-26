@@ -88,6 +88,7 @@
                                     <?php if ($existAbsen->created_on <= $tanggalAbsen) : ?>
                                         <div class="">
                                             <h4 class="font-weight-bold text-center mb-2">Anda Sudah Absen</h4>
+                                            <h6 class="text-secondary text-center"><?= $existAbsen->created_on ?></h6>
                                         </div>
                                         <img src="<?= base_url('assets/images/') ?>image-absen.svg" alt="" class="w-100">
                                         <h6 class="text-secondary text-center"><?= $existAbsen->created_on ?></h6>
@@ -95,9 +96,10 @@
                                         <!-- Jika absensi terlambat -->
                                         <div class="">
                                             <h4 class="font-weight-bold text-center mb-2">Anda Sudah Absen</h4>
+                                            <h6 class="text-center text-secondary"><?= date('Y-m-d') ?></h6>
+                                            <h6 class="text-secondary text-center"><i class="ri-time-line"></i> <?= date('H:i:s', strtotime($existAbsen->created_on)) ?></h6>
                                         </div>
                                         <img src="<?= base_url('assets/images/') ?>image-absen-terlambat.svg" alt="" class="w-100">
-                                        <h6 class="text-secondary text-center"><?= $existAbsen->created_on ?></h6>
                                     <?php endif; ?>
 
                                 <?php else : ?>

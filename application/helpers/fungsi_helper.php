@@ -1,24 +1,4 @@
 <?php
-// function check_already_login()
-// {
-//     $ci = &get_instance();
-//     $user_id = $ci->session->userdata('id');
-
-//     if ($user_id) {
-//         $ci->load->model('UserModel');
-
-//         // Menggunakan Eloquent untuk mengambil data pengguna berdasarkan ID
-//         $user = $ci->UserModel->find($user_id);
-
-//         if ($user) {
-//             if ($user->login_access == 1) {
-//                 redirect('admin/dashboard');
-//             } else {
-//                 redirect('user/dashboard');
-//             }
-//         }
-//     }
-// }
 
 use Google\Service\Sheets\Padding;
 
@@ -49,11 +29,7 @@ function user_access()
 {
     $ci = &get_instance();
     $userData = $ci->fungsi->user_login();
-
-    // $login_access = $ci->fungsi->user_login()->login_access;
-
     if (isset($userData['login_access']) && $userData['login_access'] != 0) {
-
         redirect('admin/dashboard');
     }
 }
@@ -793,27 +769,25 @@ function generateDataRekapTahunan($userId, $year)
     $ci->load->model('KaryawanModel');
     $ci->load->model('KonfigModel');
 
-
     $dataLibur = getHariLibur();
-
 
     $presensiModel = new PresensiModel();
     $presensiList = $presensiModel->getDataPresensiTahun($userId, $year);
 
     $karyawanModel = new KaryawanModel();
-    $karyawan = $karyawanModel->getByUserId($userId);
-    if ($karyawan) {
-        $jabatanId = $karyawan->jabatan_id;
-        $cuti = JabatanModel::where('id', $jabatanId)->first();
-        if ($cuti) {
-            $alokasiCuti = $cuti->alokasi_cuti;
-        } else {
-            echo "-";
-        }
-        // dd($jabatanId);
-    } else {
-        echo "-";
-    }
+    // $karyawan = $karyawanModel->getByUserId($userId);
+    // if ($karyawan) {
+    //     $jabatanId = $karyawan->jabatan_id;
+    //     $cuti = JabatanModel::where('id', $jabatanId)->first();
+    //     if ($cuti) {
+    //         $alokasiCuti = $cuti->alokasi_cuti;
+    //     } else {
+    //         echo "-";
+    //     }
+    // } else {
+    //     echo "-";
+    // }
+
 
     $bulanText = array(); // Buat array untuk menyimpan nama bulan
     $totalPresensiBulan = array();
@@ -828,25 +802,32 @@ function generateDataRekapTahunan($userId, $year)
     for ($month = 1; $month <= 12; $month++) {
         $totalTidakHadir = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
         $totalSakit = $presensiModel->hitungTotalSakitBulanan($userId, $month);
+        $alokasiCuti = sisaCutiBulanan($userId, $month);
+
         $bulanText[$month] = getIndonesianMonth(date('F', mktime(0, 0, 0, $month, 1, $year))); // Simpan nama bulan
         $totalPresensiBulan[$month] = 0;
         $totalTerlambat[$month] = 0;
         $totalWFH[$month] = 0;
         $totalHariKerja[$month] = 0;
         $jumlahTotalTidakHadir[$month] = $totalTidakHadir;
-        if (is_numeric($totalTidakHadir) && is_numeric($totalSakit)) {
-            $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir += $totalSakit;
-        } else {
+
+        if (is_numeric($totalTidakHadir)) {
             $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir;
         }
+        // if (is_numeric($totalTidakHadir) && is_numeric($totalSakit)) {
+        //     $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir += $totalSakit;
+        // } else {
+        //     $jumlahSeluruhTotalTidakHadir[$month] = $totalTidakHadir;
+        // }
+
         $jumlahTotalSakit[$month] = $totalSakit;
         $dataSakit = KonfigModel::where('nama', 'sakit')->first();
         $dataSakitPenguranganCuti = KonfigModel::where('nama', 'cuti_kurang')->first();
         $batasSakit = $dataSakit->nilai;
         $penguranganCutiSakit = $dataSakitPenguranganCuti->nilai;
 
-        $alokasiCuti = $alokasiCuti;
-
+        // $alokasiCuti = $alokasiCuti;
+        // dd($alokasiCuti);
         // $alokasiCuti = $alokasiCuti -= $jumlahTotalSakit[$month];
         // dd($jumlahTotalSakit[$month]);
 
@@ -1011,67 +992,62 @@ function generateDataRekapTahunan($userId, $year)
             echo "Total Tidak Hadir : $jumlahSeluruhTotalTidakHadir[$month]";
             echo "<button class='btn btn-sm text-danger' id='toggleDetailButton$month'><i class='ri-error-warning-line'></i> Detail</button>";
             echo "<ul class='list-group' id='statusList$month' style='display: none'>
-    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
-        Tidak Hadir
-        <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
-    </li>
-    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
-        Sakit
-        <span class='badge badge-danger badge-pill'>$jumlahTotalSakit[$month]</span>
-    </li>
-    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
-        Terlambat
-        <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
-    </li>
-    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
-        WFH
-        <span class='badge badge-info badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
-    </li>
-</ul>";
+                            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+                        Tidak Hadir & Sakit 
+                        <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
+                            </li>
+                            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+                                Terlambat
+                                <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+                            </li>
+                            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+                                WFH
+                                <span class='badge badge-secondary badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
+                            </li>
+                            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
+                            Sakit
+                            <span class='badge badge-secondary badge-pill'>$jumlahTotalSakit[$month]</span>
+                            </li>
+                    </ul>";
             echo "</td>";
             echo "<td>";
             echo "Total Terlambat : $totalTerlambat[$month]";
             echo "<br><button class='btn btn-sm text-warning p-0' id='waktuDetailButton$month'><i class='ri-error-warning-line'></i>Total Waktu</button>";
             echo "<ul class='list-group' id='waktu$month' style='display: none'>
-        <span class='badge badge-danger badge-pill'>$formatWaktuTerlambat</span>
-</ul>";
+                    <span class='badge badge-danger badge-pill'>$formatWaktuTerlambat</span>
+                            </ul>";
             echo "</td>";
             echo "<td>";
             echo "Total WFH : $totalWFH[$month]";
             echo "<br><button class='btn btn-sm text-warning p-0' id='WFHDetailButton$month'><i class='ri-error-warning-line'></i>Total Waktu</button>";
             echo "<ul class='list-group' id='WFH$month' style='display: none'>
-        <span class='badge badge-danger badge-pill'>$formatWaktuWFH</span>
-</ul>";
+                                    <span class='badge badge-danger badge-pill'>$formatWaktuWFH</span>
+                            </ul>";
             echo "</td>";
             echo "<td>";
-            if ($totalCuti[$month] > $alokasiCuti) {
-                echo "Total Cuti: 0 Hari";
-            } else {
-                echo "Total Cuti: " . $totalCuti[$month] . " Hari";
-            }
+            echo "Total Cuti: " . $totalCuti[$month] . " Hari";
             echo "<br><button class='btn btn-sm text-secondary p-0' id='cutiDetailButton$month'><i class='ri-error-warning-line'></i>Keterangan</button>";
             echo "<ul class='list-group' id='cuti$month' style='display: none'>
-            <span class='badge text-primary badge-pill'>Total Cuti dikurangi dari :</span>
-            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
-            Izin/Tidak Hadir
-            <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
-        </li>
-            <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
-            Terlambat
-            <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
-        </li>
-        <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
-        WFH
-        <span class='badge badge-info badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
-    </li>
-</ul>";
+                                        <span class='badge text-primary badge-pill'>Total Cuti dikurangi dari :</span>
+                                        <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+                                        Izin/Tidak Hadir
+                                        <span class='badge badge-danger badge-pill'>$jumlahTotalTidakHadir[$month]</span>
+                                    </li>
+                                        <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-warning' >
+                                        Terlambat
+                                        <span class='badge badge-warning badge-pill'>$jumlahTotalTidakHadirTerlambat[$month]</span>
+                                    </li>
+                                    <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
+                                    WFH
+                                    <span class='badge badge-secondary badge-pill'>$jumlahTotalTidakHadirWFH[$month]</span>
+                                </li>
+                            </ul>";
             echo "</td>";
         } else {
             echo "<td class='text-secondary'>" . $totalHariKerja[$month] . " Hari Kerja</td>";
             echo "<td class='text-secondary'>$bulanText[$month]</td>";
             echo "<td colspan='7' class='text-center text-secondary'>Tidak ada presensi di bulan ini</td>";
         }
-
         echo "</tr>";
     }
 }
@@ -1193,7 +1169,6 @@ function generateRekapBulanan($year, $month)
     $ci->load->model('KonfigModel');
 
 
-
     // Ambil daftar karyawan
     $karyawanModel = new KaryawanModel();
     $karyawanList = $karyawanModel->getKaryawan();
@@ -1210,16 +1185,6 @@ function generateRekapBulanan($year, $month)
         $userId = $karyawan->user_id;
         $totalTidakHadir = $presensiModel->tidakHadirBulanTahun($userId, $year, $month);
         $totalSakit = $presensiModel->TotalSakitBulanTahun($userId, $year, $month);
-        // dd($totalTidakHadir);
-
-        // $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
-        // // dd($cuti);
-        // if ($cuti) {
-        //     $alokasiCuti = $cuti->alokasi_cuti;
-        // } else {
-        //     echo "-";
-        // }
-
         $alokasiCuti = sisaCutiBulanan($userId, $month);
 
         $totalKehadiran = 0;
@@ -1355,7 +1320,7 @@ function generateRekapBulanan($year, $month)
         echo "<ul class='list-group' id='statusList$no' style='display: none'>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
                Tidak Hadir
-               <span class='badge badge-danger badge-pill'>$totalTidakHadir</span>
+               <span class='badge badge-secondary badge-pill'>$totalTidakHadir</span>
             </li>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
                Sakit
@@ -1367,7 +1332,7 @@ function generateRekapBulanan($year, $month)
             </li>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-info'>
                WFH
-               <span class='badge badge-info badge-pill'>$totalTidakHadirWFH</span>
+               <span class='badge badge-secondary badge-pill'>$totalTidakHadirWFH</span>
             </li>
          </ul>
          ";
@@ -1424,13 +1389,6 @@ function generateRekapTahunan($year, $month)
                 $totalTidakHadir += $jumlahTidakHadirBulan;
             }
         }
-
-        // $cuti = JabatanModel::where('id', $karyawan->jabatan_id)->first();
-        // if ($cuti) {
-        //     $alokasiCuti = $cuti->alokasi_cuti;
-        // } else {
-        //     echo "Tidak Ada";
-        // }
 
         $alokasiCuti = sisaCutiTahunan($userId, $year);
 
@@ -1551,8 +1509,8 @@ function generateRekapTahunan($year, $month)
         echo "<td> Total Berhadir : " . $totalKehadiran . " Hari</td>";
         echo "<td>";
         echo "$jumlahTotalTidakHadir Hari";
-        echo "<button class='btn btn-sm text-danger p-0' data-toggle='collapse' data-target='#statusListTahunan$month'><i class='ri-error-warning-line'></i> Detail</button>";
-        echo "<ul class='list-group' id='statusListTahunan$month' style='display: none'>
+        echo "<button class='btn btn-sm text-danger' data-toggle='collapse' data-target='#statusListTahunan$no'><i class='ri-error-warning-line'></i> Detail</button>";
+        echo "<ul class='list-group' id='statusListTahunan$no' style='display: none'>
             <li class='list-group-item d-flex justify-content-between align-items-center iq-bg-danger' >
                Tidak Hadir
                <span class='badge badge-danger badge-pill'>$totalTidakHadir</span>
@@ -1727,7 +1685,6 @@ function sisaCutiBulanan($userId, $month)
     $ci->load->model('KonfigModel');
 
     $presensiModel = new PresensiModel();
-    $presensiBulanan = $presensiModel->getDataPresensiBulan($userId, $month);
     $tidakHadirBulanan = $presensiModel->tidakHadirBulanan($userId, $month);
     $totalSakit = $presensiModel->hitungTotalSakitBulanan($userId, $month);
     // dd($tidakHadirTahunan);
@@ -1746,17 +1703,6 @@ function sisaCutiBulanan($userId, $month)
         echo "-";
     }
 
-    $jumlahIzin = 0;
-    foreach ($presensiBulanan as $presensi) {
-        $waktuPresensi = strtotime(date('H:i:s', strtotime($presensi->created_on)));
-        $jamTidakHadir = strtotime('00:00:00');
-
-        if ($waktuPresensi == $jamTidakHadir) {
-            $jumlahIzin++;
-            $tidakHadirBulanan += $jumlahIzin;
-        }
-    }
-
     // Ambil data konfigurasi Sakit
     $dataSakit = KonfigModel::where('nama', 'sakit')->first();
     $kontrolCuti = KonfigModel::where('nama', 'cuti_kurang')->first();
@@ -1765,7 +1711,7 @@ function sisaCutiBulanan($userId, $month)
         // Ambil batas sakit yang telah ditentukan
         $batasSakit = $dataSakit->nilai;
         $kontrolPenguranganCuti = $kontrolCuti->nilai;
-
+        // dd($batasSakit);
         // Periksa apakah jumlah sakit melebihi batas sakit
         if ($totalSakit > $batasSakit) {
             // Kurangi alokasi cuti jika jumlah sakit melebihi batas sakit
@@ -1779,12 +1725,10 @@ function sisaCutiBulanan($userId, $month)
     if (empty($tidakHadirBulanan)) {
         $totalCuti = $alokasiCuti;
     } elseif ($tidakHadirBulanan > $batasSakit) {
-        $totalCuti = '-';
+        $totalCuti = 0;
     } else {
-        $totalCuti = $alokasiCuti - $tidakHadirBulanan;
+        $totalCuti = max($alokasiCuti - $tidakHadirBulanan, 0);
     }
-
-    // dd($totalCuti);
     return $totalCuti;
 }
 
