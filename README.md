@@ -49,7 +49,7 @@ $db['default'] = array(
 ```
 
 
-### 3) Create Akun Admin :
+### 3) Create Akun Admin(Menggunakan Email yanng anda daftarkan sebagai admin tadi) :
 Open Folder :	```->Application
 		->controllers
 		->Auth.php```
