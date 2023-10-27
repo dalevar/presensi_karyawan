@@ -45,8 +45,11 @@ class Tipe_jabatan extends CI_Controller
             $tipe->save();
 
             $inputJabatan = $input['jabatan'];
+            $inputCuti = $input['alokasi_cuti'];
+
             $jabatan = new JabatanModel();
             $jabatan->jabatan = $inputJabatan;
+            $jabatan->alokasi_cuti = $inputCuti;
             $jabatan->save();
 
             $this->session->set_flashdata('berhasil', 'Tipe Dan Jabatan ditambahkan');
@@ -56,7 +59,8 @@ class Tipe_jabatan extends CI_Controller
 
     public function EditTipe($id)
     {
-        $this->_rules();
+        $this->form_validation->set_rules('tipe', 'Tipe', 'required');
+
 
         if (!$this->form_validation->run() == false) {
             $this->index();
@@ -141,7 +145,7 @@ class Tipe_jabatan extends CI_Controller
 
     public function _rules()
     {
-        $this->form_validation->set_rules('tipe', 'Tipe', 'required');
+        // $this->form_validation->set_rules('tipe', 'Tipe', 'required');
         $this->form_validation->set_rules('jabatan', 'Jabatan', 'required');
     }
 }

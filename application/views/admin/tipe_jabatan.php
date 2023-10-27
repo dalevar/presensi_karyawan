@@ -124,17 +124,22 @@
                     <div class="form-group">
                         <label for="">Nama Tipe</label>
                         <input type="text" class="form-control" name="tipe">
-                        <?= form_error('tipe', '<small class="text-danger">', '</small>') ?>
+                        <!-- <?= form_error('tipe', '<small class="text-danger">', '</small>') ?> -->
                     </div>
                     <div class="form-group">
                         <label for="">Nama Jabatan</label>
                         <input type="text" class="form-control" name="jabatan">
                         <?= form_error('jabatan', '<small class="text-danger">', '</small>') ?>
                     </div>
+                    <div class="form-group">
+                        <label for="">Alokasi Cuti</label>
+                        <input type="number" class="form-control" name="alokasi_cuti" min="0">
+                        <!-- <?= form_error('alokasi_cuti', '<small class="text-danger">', '</small>') ?> -->
+                    </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
             </form>
         </div>
