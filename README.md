@@ -53,7 +53,7 @@ $db['default'] = array(
 Open Folder :	```->Application
 		->controllers
 		->Auth.php```
-Then Edit The Code :
+Lalu Edit code buat seperti ini :
 ```
  if (!$user->exists) {
                     if ($data['email'] == $karyawan->email) {
@@ -83,9 +83,9 @@ Then Edit The Code :
                     }
 ```
 
-### Setelah itu kembali ke halaman login Lalu Gunakan Email yang ingin dijadikan sebagai admin 
+### Setelah itu kembali ke halaman login, Lalu Gunakan Email yang ingin dijadikan sebagai admin 
 
-### 4) Remove The this code :
+### 4) Setelah Login menggunakan akun admin, ubah code tadi menjadi seperti semula lagi :
 ```
 			    $user->login_access = 1;
                             $user->first_name = $data['given_name'];
@@ -95,7 +95,7 @@ Then Edit The Code :
                             $user->created_at = $current_datetime;
                             $user->save();
 ```
-### Make sure your code like this (Auth.php):
+### Pastikan code yang anda edit tadi terlihat seperti ini (Auth.php):
 ```
  if (!$user->exists) {
                     if ($data['email'] == $karyawan->email) {
@@ -118,7 +118,7 @@ Then Edit The Code :
                     }
 ```
 
-### 5) Login as admin
+### 5) Login sebagai admin
 Pilih Email Yang tersimpan sebagai admin
 
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
