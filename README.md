@@ -85,7 +85,7 @@ Lalu Edit code buat seperti ini :
 
 ### Setelah itu kembali ke halaman login, Lalu Gunakan Email yang ingin dijadikan sebagai admin 
 
-### 4) Setelah Login menggunakan akun admin, ubah code tadi menjadi seperti semula lagi :
+### 4) Setelah Login menggunakan akun email yang dijadikan sebagai admin, ubah code tadi menjadi seperti semula lagi :
 ```
 			    $user->login_access = 1;
                             $user->first_name = $data['given_name'];
