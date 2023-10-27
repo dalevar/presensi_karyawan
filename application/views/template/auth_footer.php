@@ -71,7 +71,9 @@
         let flashType = flashElement.data('type');
 
         if (flashMessage) {
-            let title = (flashType === 'success') ? 'Berhasil' : 'Gagal';
+            // let title = (flashType === 'success') ? 'Berhasil' || 'info' : 'Gagal';
+            let title = (flashType === 'success') ? 'Berhasil' : ((flashType === 'info') ? 'Info' : 'Gagal');
+
 
             Swal.fire({
                 icon: flashType,

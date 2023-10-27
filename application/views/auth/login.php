@@ -15,7 +15,6 @@
                             <!-- <div id="flash" data-flash="<?= $this->session->flashdata('flash') ?>"></div> -->
                             <?php if ($this->session->flashdata('berhasil')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('berhasil') ?>" data-type="success"></div>
-
                             <?php elseif ($this->session->flashdata('gagal')) : ?>
                                 <div id="flash" data-flash="<?= $this->session->flashdata('gagal') ?>" data-type="error"></div>
 
@@ -24,8 +23,6 @@
                             <div class="social-btn d-flex justify-content-around align-items-center mb-4">
                                 <?= $login_button ?>
                             </div>
-
-
                         </div>
                     </div>
                 </div>

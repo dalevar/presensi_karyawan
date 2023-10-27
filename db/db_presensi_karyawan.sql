@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 26, 2023 at 07:22 AM
+-- Generation Time: Oct 27, 2023 at 08:59 AM
 -- Server version: 8.0.30
 -- PHP Version: 7.4.33
 
@@ -75,6 +75,17 @@ CREATE TABLE `konfig` (
   `nama` varchar(128) NOT NULL,
   `nilai` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `konfig`
+--
+
+INSERT INTO `konfig` (`id`, `nama`, `nilai`) VALUES
+(1, 'jam_masuk', '08:00'),
+(2, 'jam_berakhir', '17:00'),
+(3, 'wfh', '60'),
+(5, 'sakit', '7'),
+(6, 'cuti_kurang', '1');
 
 -- --------------------------------------------------------
 
@@ -212,7 +223,7 @@ ALTER TABLE `karyawan`
 -- AUTO_INCREMENT for table `konfig`
 --
 ALTER TABLE `konfig`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `presensi`
