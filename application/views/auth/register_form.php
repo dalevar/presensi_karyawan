@@ -17,11 +17,31 @@
                                 <div id="flash" data-flash="<?= $this->session->flashdata('info') ?>" data-type="info"></div>
                             <?php endif; ?>
 
-                            <h3 class="mb-3 font-weight-bold text-center">Login Admin</h3>
-                            <p class="text-center text-secondary mb-4">Choose your account </p>
-                            <div class="social-btn d-flex justify-content-around align-items-center mb-4">
-                                <?= $login_button ?>
+                            <h3 class="mb-3 font-weight-bold text-center">Sign Up</h3>
+                            <p class="text-center text-secondary mb-4">Choose your account as Admin</p>
+                            <ul class="nav nav-tabs" id="myTab-1" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="config-tab" data-toggle="tab" href="#config" role="tab" aria-controls="config" aria-selected="true">Config</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="signup-tab" data-toggle="tab" href="#signup" role="tab" aria-controls="signup" aria-selected="false">Sign Up</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="myTabContent-2">
+                                <div class="tab-pane fade show active" id="config" role="tabpanel" aria-labelledby="config-tab">
+                                    <form action="" method="">
+
+                                    </form>
+                                </div>
+                                <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                                    <div class="social-btn d-flex justify-content-around align-items-center mb-4">
+                                        <?= $login_button ?>
+                                    </div>
+                                </div>
+
                             </div>
+
+
                             <!-- <div class="card-header pt-3 pb-2" style="box-shadow: -5px 5px -5px -5px rgba(0,0,0,0.3);">
                                 <ul class="nav nav-tabs justify-content-between" id="myTab-1" role="tablist">
                                     <li class="nav-item">
