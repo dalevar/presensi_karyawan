@@ -48,17 +48,12 @@ $db['default'] = array(
 );
 ```
 
-### 5) Login sebagai admin
-Pilih Email Yang tersimpan sebagai admin
-
+### 5) Sign In Account
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
-### 6) Tambahkan Data Karyawan
-```NOTE : Sebelum menambahkan Users/Karyawan, Diharuskan untuk Mengisi Tipe & Jabatan.```
-
-Pilih Dibagian sidebar ```Management Users```
-
-![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) 
+### 6) Jika Belum ada account (Sign Up)
+![image](![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/955fdf29-771e-41e4-a3e9-27b133950843) 
+	```NOTE : Gunakan akun yang ingin dijadikan sebagai admin```
 
 ### KLICK TAMBAH
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/40cbc49b-a58f-4d28-9f30-81aa2315521a)
