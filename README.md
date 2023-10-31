@@ -57,6 +57,7 @@ NOTE : Gunakan akun yang ingin dijadikan sebagai admin
 ```
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/955fdf29-771e-41e4-a3e9-27b133950843) 
 
+### ```NOTE : Sebelum Menambahkan data karyawan Tambahkan Tipe & Jabatan Terlebih dahulu```
 
 ### KLICK TAMBAH
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/40cbc49b-a58f-4d28-9f30-81aa2315521a)
