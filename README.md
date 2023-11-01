@@ -48,87 +48,16 @@ $db['default'] = array(
 );
 ```
 
-
-### 3) Create Akun Admin(Menggunakan Email yanng anda daftarkan sebagai admin tadi) :
-Open Folder :	```->Application
-		->controllers
-		->Auth.php```
-Lalu Edit code buat seperti ini :
-```
- if (!$user->exists) {
-                    if ($data['email'] == $karyawan->email) {
-                        if ($karyawan) {
-                            // Data pengguna belum ada, masukkan data
-                            $user->login_access = 0;
-                            $user->first_name = $data['given_name'];
-                            $user->last_name = $data['family_name'];
-                            $user->email_address = $data['email'];
-                            $user->profile_picture = $data['picture'];
-                            $user->created_at = $current_datetime;
-                            $user->save();
-
-                            $this->session->set_flashdata('berhasil', 'Email Anda Telah Terdaftar Harap Login kembali');
-                            redirect('auth/berhasil');
-                        }
-                    } else {
-			    $user->login_access = 1;
-                            $user->first_name = $data['given_name'];
-                            $user->last_name = $data['family_name'];
-                            $user->email_address = $data['email'];
-                            $user->profile_picture = $data['picture'];
-                            $user->created_at = $current_datetime;
-                            $user->save();
-                        $this->session->set_flashdata('gagal', 'Email Tidak Terdaftar!');
-                        redirect('auth/gagal');
-                    }
-```
-
-### Setelah itu kembali ke halaman login, Lalu Gunakan Email yang ingin dijadikan sebagai admin 
-
-### 4) Setelah Login menggunakan akun email yang dijadikan sebagai admin, hapus code yang tadi ditambahkan :
-```
-			    $user->login_access = 1;
-                            $user->first_name = $data['given_name'];
-                            $user->last_name = $data['family_name'];
-                            $user->email_address = $data['email'];
-                            $user->profile_picture = $data['picture'];
-                            $user->created_at = $current_datetime;
-                            $user->save();
-```
-### Pastikan code yang anda edit tadi terlihat seperti ini (Auth.php):
-```
- if (!$user->exists) {
-                    if ($data['email'] == $karyawan->email) {
-                        if ($karyawan) {
-                            // Data pengguna belum ada, masukkan data
-                            $user->login_access = 0;
-                            $user->first_name = $data['given_name'];
-                            $user->last_name = $data['family_name'];
-                            $user->email_address = $data['email'];
-                            $user->profile_picture = $data['picture'];
-                            $user->created_at = $current_datetime;
-                            $user->save();
-
-                            $this->session->set_flashdata('berhasil', 'Email Anda Telah Terdaftar Harap Login kembali');
-                            redirect('auth/berhasil');
-                        }
-                    } else {
-                        $this->session->set_flashdata('gagal', 'Email Tidak Terdaftar!');
-                        redirect('auth/gagal');
-                    }
-```
-
-### 5) Login sebagai admin
-Pilih Email Yang tersimpan sebagai admin
-
+### 5) Sign In Account
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
-### 6) Tambahkan Data Karyawan
-```NOTE : Sebelum menambahkan Users/Karyawan, Diharuskan untuk Mengisi Tipe & Jabatan.```
+### 6) Jika Belum ada account (Sign Up)
+```
+NOTE : Gunakan akun yang ingin dijadikan sebagai admin
+```
+![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/955fdf29-771e-41e4-a3e9-27b133950843) 
 
-Pilih Dibagian sidebar ```Management Users```
-
-![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/3d94b1da-9b11-4f8a-af76-2cb1ae5b4c3d) 
+### ```NOTE : Sebelum Menambahkan data karyawan Tambahkan Tipe & Jabatan Terlebih dahulu```
 
 ### KLICK TAMBAH
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/40cbc49b-a58f-4d28-9f30-81aa2315521a)
