@@ -58,6 +58,7 @@ class Presensi extends CI_Controller
             $presensi->created_on = $created_on;
 
             $presensiData = $presensi->getPresensiHariSebelumnya($user_id);
+            // dd($presensiData);
             if (!empty($presensiData)) {
                 $tanggalHariSebelumnya = date('Y-m-d', strtotime('-1 day'));
                 $currentDate = date('Y-m-d');
@@ -72,7 +73,8 @@ class Presensi extends CI_Controller
                     redirect('user/dashboard');
                 }
             } else {
-                $this->session->set_flashdata('gagal', 'Data Anda tidak ada');
+                $presensi->save();
+                $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk');
                 redirect('user/dashboard');
             }
         }
