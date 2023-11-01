@@ -28,5 +28,6 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 
 *.sql
 *.db
-*.env
+.env
 stystem/.env
+the_env.php
