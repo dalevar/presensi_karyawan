@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 01, 2023 at 06:37 AM
+-- Generation Time: Nov 03, 2023 at 01:05 AM
 -- Server version: 8.0.30
 -- PHP Version: 7.4.33
 
@@ -18,8 +18,10 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ci_karyawan`
+-- Database: `db_presensi_karyawan`
 --
+CREATE DATABASE IF NOT EXISTS `db_presensi_karyawan` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `db_presensi_karyawan`;
 
 -- --------------------------------------------------------
 
