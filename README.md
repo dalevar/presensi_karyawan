@@ -17,41 +17,12 @@ $ composer install
 ```
 
 ### 2) Import Database
-### -> Lakukan Setup config database
 
-```
-use Illuminate\Database\Capsule\Manager as Capsule;
 
-$active_group = 'default';
-$query_builder = TRUE;
-
-$db['default'] = array(
-	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
-	'database' => 'nama_database',
-	'dbdriver' => 'mysqli',
-	'dbprefix' => '',
-	'pconnect' => FALSE,
-	'db_debug' => (ENVIRONMENT !== 'production'),
-	'cache_on' => FALSE,
-	'cachedir' => '',
-	'char_set' => 'utf8',
-	'dbcollat' => 'utf8_general_ci',
-	'swap_pre' => '',
-	'encrypt' => FALSE,
-	'compress' => FALSE,
-	'stricton' => FALSE,
-	'failover' => array(),
-	'save_queries' => TRUE
-);
-```
-
-### 5) Sign In Account
+### 3) Sign In Account
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
-### 6) Jika Belum ada account (Sign Up)
+### 4) Jika Belum ada account (Sign Up)
 ```
 NOTE : Gunakan akun yang ingin dijadikan sebagai admin
 ```
