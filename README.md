@@ -16,13 +16,10 @@ Install the Illuminate Database package with Composer:
 $ composer install
 ```
 
-### 2) Import Database
-
-
-### 3) Sign In Account
+### 2) Sign In Account
 ![image](https://github.com/dalevar/presensi_karyawan/assets/141650107/56902add-999f-46a4-85a8-708451e01bef)
 
-### 4) Jika Belum ada account (Sign Up)
+### 3) Jika Belum ada account (Sign Up)
 ```
 NOTE : Gunakan akun yang ingin dijadikan sebagai admin
 ```
