@@ -27,4 +27,5 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 *.sublime-project
 
 *.env
-*.system/
+*.system/env
+*.sql
