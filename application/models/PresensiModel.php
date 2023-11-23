@@ -732,16 +732,8 @@ class PresensiModel extends Eloquent
         return $presensi;
     }
 
-    public function hitungTerlambatHariIni($tanggal)
-    {
-        $hariIni = date('Y-m-d H:i:s', strtotime($tanggal . ' 08:00:00'));
 
-        $terlambat = $this->where('tanggal', $hariIni)
-            ->where('created_on', '>', $hariIni)
-            ->count();
 
-        return $terlambat;
-    }
 
     public function hitungTidakHadir($tanggal)
     {

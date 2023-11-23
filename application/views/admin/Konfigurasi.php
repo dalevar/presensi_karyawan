@@ -26,6 +26,7 @@
                                 <div class="col-sm-2">
                                     <div class="nav flex-column nav-pills text-left" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                                         <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab" aria-controls="v-pills-home" aria-selected="true">Jam Mulai & Selesai</a>
+                                        <a class="nav-link" id="v-pills-keterlambatan-tab" data-toggle="pill" href="#v-pills-keterlambatan" role="tab" aria-controls="v-pills-keterlambatan" aria-selected="true">Setting Keterlambatan</a>
                                         <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">WFH</a>
                                         <a class="nav-link" id="v-pills-sakit-tab" data-toggle="pill" href="#v-pills-sakit" role="tab" aria-controls="v-pills-sakit" aria-selected="false">Alokasi Sakit</a>
                                         <a class="nav-link" id="v-pills-secret-tab" data-toggle="pill" href="#v-pills-secret" role="tab" aria-controls="v-pills-secret" aria-selected="false">Client Secret</a>
@@ -35,42 +36,71 @@
                                 <div class="col-sm-9">
                                     <div class="tab-content mt-0" id="v-pills-tabContent">
                                         <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">
+                                            <div class="row">
+                                                <div class="card col-md-6">
+                                                    <div class="card-header d-flex">
+                                                        <div class="header-title">
+                                                            <h4 class="card-title">Jam Mulai Presensi</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <form action="<?= base_url('admin/konfigurasi/PengaturanJam') ?>" method="post">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <?php foreach ($konfig as $kf) : ?>
+                                                                        <?php if ($kf->nama == 'jam_masuk') : ?>
+                                                                            <label for="jamMasuk">Jam Masuk : <span class="text-secondary"> <?= $kf->nilai ?></span>
+                                                                            </label>
+                                                                        <?php endif; ?>
+                                                                    <?php endforeach; ?>
+                                                                    <!-- <input type="text" id="jamMasuk" name="waktuMasuk" class="form-control" placeholder="08:00" value="<?= set_value('waktuMasuk'); ?>"> -->
+                                                                    <input type="time" id="jamMasuk" name="waktuMasuk" class="form-control" value="<?= set_value('waktuMasuk'); ?>">
+                                                                    <?= form_error('waktuMasuk', '<small class="text-danger">', '</small>') ?>
+
+                                                                </div>
+                                                                <div class="col-md-12 mt-2">
+                                                                    <?php foreach ($konfig as $kf) : ?>
+                                                                        <?php if ($kf->nama == 'jam_berakhir') : ?>
+                                                                            <label for="jamBerakhir">Jam Berakhir : <span class="text-secondary" id="periodeWaktuBerakhir"> <?= $kf->nilai ?></span></label>
+                                                                            </label>
+                                                                        <?php endif; ?>
+                                                                    <?php endforeach; ?>
+
+                                                                    <!-- <input type="text" id="jamBerakhir" name="waktuBerakhir" class="form-control" placeholder="17:00" value="<?= set_value('waktuBerakhir'); ?>"> -->
+                                                                    <input type="time" id="jamBerakhir" name="waktuBerakhir" class="form-control" value="<?= set_value('waktuBerakhir'); ?>">
+                                                                    <?= form_error('waktuBerakhir', '<small class="text-danger">', '</small>') ?>
+
+                                                                </div>
+                                                            </div>
+                                                            <button type=" submit" class="btn btn-primary btn-sm mt-2 float-right">Simpan</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="v-pills-keterlambatan" role="tabpanel" aria-labelledby="v-pills-keterlambatan-tab">
                                             <div class="card col-md-6">
                                                 <div class="card-header d-flex">
                                                     <div class="header-title">
-                                                        <h4 class="card-title">Jam Mulai Presensi</h4>
+                                                        <h4 class="card-title">Setting Keterlambatan</h4>
                                                     </div>
                                                 </div>
                                                 <div class="card-body">
-                                                    <form action="<?= base_url('admin/konfigurasi/PengaturanJam') ?>" method="post">
+                                                    <form action="<?= base_url('admin/konfigurasi/settingKeterlambatan') ?>" method="POST">
                                                         <div class="row">
                                                             <div class="col-md-12">
                                                                 <?php foreach ($konfig as $kf) : ?>
-                                                                    <?php if ($kf->nama == 'jam_masuk') : ?>
-                                                                        <label for="jamMasuk">Jam Masuk : <span class="text-secondary"> <?= $kf->nilai ?></span>
+                                                                    <?php if ($kf->nama == 'kali_keterlambatan') : ?>
+                                                                        <label for="kali_keterlambatan">Kali Keterlambatan : <span class="text-secondary"> <?= $kf->nilai ?></span> <span class="text-secondary">x</span>
                                                                         </label>
                                                                     <?php endif; ?>
                                                                 <?php endforeach; ?>
-                                                                <!-- <input type="text" id="jamMasuk" name="waktuMasuk" class="form-control" placeholder="08:00" value="<?= set_value('waktuMasuk'); ?>"> -->
-                                                                <input type="time" id="jamMasuk" name="waktuMasuk" class="form-control" value="<?= set_value('waktuMasuk'); ?>">
-                                                                <?= form_error('waktuMasuk', '<small class="text-danger">', '</small>') ?>
-
-                                                            </div>
-                                                            <div class="col-md-12 mt-2">
-                                                                <?php foreach ($konfig as $kf) : ?>
-                                                                    <?php if ($kf->nama == 'jam_berakhir') : ?>
-                                                                        <label for="jamBerakhir">Jam Berakhir : <span class="text-secondary" id="periodeWaktuBerakhir"> <?= $kf->nilai ?></span></label>
-                                                                        </label>
-                                                                    <?php endif; ?>
-                                                                <?php endforeach; ?>
-
-                                                                <!-- <input type="text" id="jamBerakhir" name="waktuBerakhir" class="form-control" placeholder="17:00" value="<?= set_value('waktuBerakhir'); ?>"> -->
-                                                                <input type="time" id="jamBerakhir" name="waktuBerakhir" class="form-control" value="<?= set_value('waktuBerakhir'); ?>">
-                                                                <?= form_error('waktuBerakhir', '<small class="text-danger">', '</small>') ?>
-
+                                                                <input type="number" id="kali_keterlambatan" name="kali_keterlambatan" class="form-control" min="1" value="<?= set_value('settingKeterlambatan') ?>">
+                                                                <?= form_error('kali_keterlambatan', '<small class="text-danger">', '</small>') ?>
                                                             </div>
                                                         </div>
-                                                        <button type=" submit" class="btn btn-primary btn-sm mt-2 float-right">Simpan</button>
+                                                        <button type="submit" class="btn btn-primary btn-sm mt-2 float-lg-right">Simpan</button>
                                                     </form>
                                                 </div>
                                             </div>
@@ -80,7 +110,6 @@
                                                 <div class="card-header d-flex">
                                                     <div class="header-title">
                                                         <h4 class="card-title">WFH</h4>
-
                                                     </div>
                                                 </div>
                                                 <div class="card-body">

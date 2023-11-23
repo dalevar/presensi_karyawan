@@ -67,6 +67,31 @@ class Konfigurasi extends CI_Controller
         }
     }
 
+    public function settingKeterlambatan()
+    {
+        $this->form_validation->set_rules('kali_keterlambatan', 'Kali Keterlambatan', 'required');
+        if ($this->form_validation->run() == false) {
+            $this->session->set_flashdata('gagal', 'Kali Keterlambatan Harus Diisi');
+            $this->index();
+        } else {
+            $input = $this->input->post(null, true);
+            $kali_keterlambatan = $input['kali_keterlambatan'];
+
+            $dataKaliKeterlambatan = KonfigModel::where('nama', 'kali_keterlambatan')->first();
+
+            if ($dataKaliKeterlambatan) {
+                $dataKaliKeterlambatan->nilai = $kali_keterlambatan;
+                $dataKaliKeterlambatan->save();
+
+                $this->session->set_flashdata('berhasil', 'Kali Keterlambatan Ditambahkan');
+                $this->index();
+            } else {
+                $this->session->set_flashdata('gagal', 'gagal menambahkan data');
+                $this->index();
+            }
+        }
+    }
+
     public function PengaturanHari()
     {
         $this->form_validation->set_rules('wfh', 'Menit', 'required');

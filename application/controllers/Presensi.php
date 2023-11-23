@@ -46,7 +46,7 @@ class Presensi extends CI_Controller
             ->first();
 
         if ($existAbsen) {
-            // Jika entri presensi sudah ada, beri pesan error atau lakukan tindakan yang sesuai
+
             $this->session->set_flashdata('berhasil', 'Anda Telah Melakukan Absensi Hari ini pada jam ' . ' ' . $created_on);
         } else {
             $presensi = new PresensiModel();
@@ -63,13 +63,53 @@ class Presensi extends CI_Controller
                 $tanggalHariSebelumnya = date('Y-m-d', strtotime('-1 day'));
                 $currentDate = date('Y-m-d');
                 $tanggalPresensi = date('Y-m-d', strtotime($presensiData->created_on));
-                if ($tanggalPresensi == $tanggalHariSebelumnya || date('w', strtotime($tanggalHariSebelumnya)) == 0) {
+                $dataBatasWaktu = KonfigModel::where('nama', 'jam_masuk')->first();
+                $batasWaktu = strtotime($dataBatasWaktu->nilai);
+
+                // Ambil konfigurasi kali_keterlambatan
+                $dataKaliKeterlambatan = KonfigModel::where('nama', 'kali_keterlambatan')->first();
+                // dd($dataKaliKeterlambatan->nilai);
+
+                if ($tanggalPresensi == $tanggalHariSebelumnya || date('w', strtotime($tanggalHariSebelumnya)) == 0) { //jika absen hari sebelumnya sama dengan hari ini atau hari sebelumnya adalah hari minggu maka absen masuk
+                    if (strtotime($presensi->created_on) > $batasWaktu) {
+                        // Jika absen dilakukan setelah jam 08:00:00
+                        // Hitung keterlambatan dalam menit
+                        $keterlambatanMenit = round((strtotime($presensi->created_on) - $batasWaktu) / 60);
+                        // dd($keterlambatanMenit);
+                        if ($keterlambatanMenit > 0) {
+                            $keterlambatanMenit *= $dataKaliKeterlambatan->nilai;
+
+                            // Simpan data keterlambatan ke dalam tabel presensi
+                            $presensi->created_on = date('Y-m-d H:i:s', strtotime($presensi->created_on) + ($keterlambatanMenit * 30));
+                        }
+                        $presensi->save();
+                        $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk ');
+                        redirect('user/dashboard');
+                    } else {
+                        // Jika absen dilakukan sebelum atau tepat pada jam 08:00:00
+                        $presensi->save();
+                        $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk');
+                        redirect('user/dashboard');
+                    }
+                } elseif ($tanggalPresensi != $tanggalHariSebelumnya) { //jika absen hari sebelumnya tidak sama dengan hari ini maka absen tidak hadir
+                    if (strtotime($presensi->created_on) > $batasWaktu) {
+                        // Jika absen dilakukan setelah jam 08:00:00
+                        // Hitung keterlambatan dalam menit
+                        $keterlambatanMenit = round((strtotime($presensi->created_on) - $batasWaktu) / 60);
+                        // dd($keterlambatanMenit);
+                        if ($keterlambatanMenit > 0) {
+                            $keterlambatanMenit *= $dataKaliKeterlambatan->nilai;
+
+                            // Simpan data keterlambatan ke dalam tabel presensi
+                            $presensi->created_on = date('Y-m-d H:i:s', strtotime($presensi->created_on) + ($keterlambatanMenit * 30));
+                        }
+                        $presensi->save();
+                        $this->session->set_flashdata('pemberitahuan', 'Absen Anda Telah Masuk');
+                        redirect('user/dashboard');
+                    }
+                    // Jika absen dilakukan sebelum atau tepat pada jam 08:00:00
                     $presensi->save();
                     $this->session->set_flashdata('berhasil', 'Absen Anda Telah Masuk');
-                    redirect('user/dashboard');
-                } elseif ($tanggalPresensi != $tanggalHariSebelumnya) {
-                    $presensi->save();
-                    $this->session->set_flashdata('pemberitahuan', 'SAKIT');
                     redirect('user/dashboard');
                 }
             } else {
@@ -103,8 +143,10 @@ class Presensi extends CI_Controller
                 $tanggalAwal = $secondLastAttendanceDate;
                 $tanggalAkhir = date('Y-m-d');
 
-                $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
-                for ($i = 0; $i <= $gapTanggal; $i++) {
+                $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir); //Menghitung Selisih Tanggal lalu dikurangi 1
+                $gapTanggalKurangSatu = $gapTanggal - 1;
+
+                for ($i = 0; $i <= $gapTanggalKurangSatu; $i++) {
                     $tanggal = date('Y-m-d', strtotime("-$i day"));
                     $created_on = date('Y-m-d', strtotime("-$i day"));
                     // Periksa apakah tanggal adalah hari Minggu (ISO 7) atau sama dengan tanggal saat ini
@@ -158,7 +200,9 @@ class Presensi extends CI_Controller
                 // $tanggalAkhir = $lastAttendanceDate;
 
                 $gapTanggal = countTanggal($tanggalAwal, $tanggalAkhir);
-                for ($i = 0; $i <= $gapTanggal; $i++) {
+                $gapTanggalKurangSatu = $gapTanggal - 1;
+
+                for ($i = 0; $i <= $gapTanggalKurangSatu; $i++) {
                     $tanggal = date('Y-m-d', strtotime("-$i day"));
                     $created_on = date('Y-m-d', strtotime("-$i day"));
                     if (date('N', strtotime($tanggal)) == 7 || $tanggal == date('Y-m-d')) {
