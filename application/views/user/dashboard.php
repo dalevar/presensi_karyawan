@@ -26,7 +26,7 @@
                                         <h5 class="mb-2 font-weitght-bold">Tidak Hadir Bulan Ini</h5>
                                         <div class="justify-content-start align-items-center">
                                             <h6 class="mb-2 font-weight-bold  text-secondary">Tidak Hadir : <span class="text-danger"><?= $tidakHadirBulanan ?> Hari</span></h6>
-                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat : <span class="text-warning"><?= $totalTerlambatBulanan ?> Menit</span></h6>
+                                            <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat : <span class="text-warning"><?= $totalTerlambatBulanan ?></span></h6>
                                         </div>
                                     </div>
                                 </div>
@@ -45,7 +45,7 @@
                                                 <span class="text-danger"><?= $tidakHadirTahunan ?> Hari</span>
                                             </h6>
                                             <h6 class="mb-0 font-weight-bold  text-secondary">Terlambat :
-                                                <span class="text-warning"><?= $totalTerlambatTahunan ?> Menit</span>
+                                                <span class="text-warning"><?= $totalTerlambatTahunan ?></span>
                                             </h6>
                                         </div>
                                     </div>
